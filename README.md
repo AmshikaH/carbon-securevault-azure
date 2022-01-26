@@ -79,7 +79,9 @@ enable = "true"
 
 ## Step 4: Carbon Secure Vault Root Password
 
-When you start the server, you will be prompted to enter the keystore and private key password as `[Enter KeyStore and Private Key Password :]`.
+When you start the server, you will be prompted to enter the keystore and private key password as follows.
+
+`[Enter KeyStore and Private Key Password :]`
 
 You may either enter the value for this (`wso2carbon` is the default value) in the command line or you may save the value in a file from which it will be read.
 
@@ -97,7 +99,7 @@ The latter is necessary when you run the server as a background task and it is d
 >
 >For Windows: The file name should be `password-persist.txt`.
 
-Note that by default, both the private key and keystore passwords are assumed to be the same. However, if they are not the same, the private key password must be entered in the second line of the file.
+Note that, by default, both the private key and keystore passwords are assumed to be the same. However, if they are not the same, the private key password must be entered in the second line of the file.
 
 ## Debugging
 
