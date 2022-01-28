@@ -33,7 +33,9 @@ The last two lines above are properties that need to be edited according to the 
 
 ## Step 3: Referencing Deployment Secrets
 
-1. In the deployment.toml file (<IS_HOME>/repository/conf/deployment.toml), replace each value to be stored as a secret with a reference using an alias in the format `$secret{alias}`.
+1. In the deployment.toml file (<IS_HOME>/repository/conf/deployment.toml), replace each value to be stored as a secret with a reference.
+
+- To retrieve the latest version of a secret: set the reference using an alias in the format `$secret{alias}`, where the alias is the name of the secret in your Key Vault.
 
 Example:
 ```
@@ -43,13 +45,18 @@ password = "admin"
 create_admin_account = true
 ```
 
-The password in the above can be stored in the user's Key Vault as a secret with the name "admin-password". Then the configuration would be updated as follows.
+The password in the above could be stored in the user's Key Vault as a secret with the name "admin-password". Then the configuration would be updated as follows.
+
 ```
 [super_admin]
 username = "admin"
 password = "$secret{admin-password}"
 create_admin_account = true
 ```
+
+- To retrieve a specific version of a secret, there are two ways, namely: 
+  - Set the reference in the format `$secret{alias}` just like we did previously and set a corresponding environment variable with the `alias` as the variable name and the version as the value.
+  - Alternatively, you could set the reference in the format `$secret{alias_version}`.
 
 2. This step differs depending on your version of the Identity Server.
    Add the following lines to the deployment.toml file.
@@ -79,7 +86,9 @@ enable = "true"
 
 ## Step 4: Setting Up Authentication to Azure Key Vault
 
-An authentication chain has been used to allow you the flexibility to choose your preferred way. For more information on the chain and setting up authentication, refer to the Microsoft documentation on [Azure authentication with Java and Azure Identity](https://docs.microsoft.com/en-us/azure/developer/java/sdk/identity).
+An authentication chain has been used to allow you the flexibility to choose your preferred way. The authentication chain supports authentication via [environment variables](https://docs.microsoft.com/en-us/azure/developer/java/sdk/identity-azure-hosted-auth#environment-variables), [managed identities](https://docs.microsoft.com/en-us/azure/developer/java/sdk/identity-azure-hosted-auth#managed-identity-credential) or the [Azure CLI](https://docs.microsoft.com/en-us/azure/developer/java/sdk/identity-dev-env-auth#azure-cli-credential).
+
+If you choose to authenticate via a user-assigned managed identity, see [Step 2: Enabling Carbon Secure Vault](Step 2: Enabling Carbon Secure Vault) above regarding setting the managed identity's client id.
 
 ## Step 5: Carbon Secure Vault Root Password
 
