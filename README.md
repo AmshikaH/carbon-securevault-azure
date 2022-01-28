@@ -77,7 +77,11 @@ admin-password = “”
 enable = "true"
 ```
 
-## Step 4: Carbon Secure Vault Root Password
+## Step 4: Setting Up Authentication to Azure Key Vault
+
+An authentication chain has been used to allow you the flexibility to choose your preferred way. For more information on the chain and setting up authentication, refer to the Microsoft documentation on [Azure authentication with Java and Azure Identity](https://docs.microsoft.com/en-us/azure/developer/java/sdk/identity).
+
+## Step 5: Carbon Secure Vault Root Password
 
 When you start the server, you will be prompted to enter the keystore and private key password as follows.
 
