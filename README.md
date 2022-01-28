@@ -88,7 +88,7 @@ enable = "true"
 
 An authentication chain has been used to allow you the flexibility to choose your preferred way. The authentication chain supports authentication via [environment variables](https://docs.microsoft.com/en-us/azure/developer/java/sdk/identity-azure-hosted-auth#environment-variables), [managed identities](https://docs.microsoft.com/en-us/azure/developer/java/sdk/identity-azure-hosted-auth#managed-identity-credential) or the [Azure CLI](https://docs.microsoft.com/en-us/azure/developer/java/sdk/identity-dev-env-auth#azure-cli-credential).
 
-If you choose to authenticate via a user-assigned managed identity, see [Step 2: Enabling Carbon Secure Vault](Step 2: Enabling Carbon Secure Vault) above regarding setting the managed identity's client id.
+If you choose to authenticate via a user-assigned managed identity, see [Step 2: Enabling Carbon Secure Vault](#step-2-enabling-carbon-secure-vault) above regarding setting the managed identity's client id.
 
 ## Step 5: Carbon Secure Vault Root Password
 
