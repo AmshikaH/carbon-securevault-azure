@@ -170,13 +170,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
                 log.debug("Secret version found in alias. Retrieving the specified version of secret.");
             }
         } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Secret version not specified in alias. Checking environment variables.");
-            }
-            secretVersion = System.getenv(alias);
-            if (StringUtils.isEmpty(secretVersion) && log.isDebugEnabled()) {
-                log.debug("Secret version not found in environment variables. Retrieving latest version of secret.");
-            }
+            log.debug("Secret version not found in alias. Retrieving latest version of secret.");
         }
         KeyVaultSecret retrievedSecret = secretClient.getSecret(secretName, secretVersion);
         String secret = retrievedSecret.getValue();
