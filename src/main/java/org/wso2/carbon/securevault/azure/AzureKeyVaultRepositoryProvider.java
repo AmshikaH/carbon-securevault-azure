@@ -5,9 +5,13 @@ import org.wso2.securevault.keystore.TrustKeyStoreWrapper;
 import org.wso2.securevault.secret.SecretRepository;
 import org.wso2.securevault.secret.SecretRepositoryProvider;
 
+/**
+ * Provides the secret repository.
+ */
 public class AzureKeyVaultRepositoryProvider implements SecretRepositoryProvider {
     @Override
-    public SecretRepository getSecretRepository(IdentityKeyStoreWrapper identityKeyStoreWrapper, TrustKeyStoreWrapper trustKeyStoreWrapper) {
+    public SecretRepository getSecretRepository(IdentityKeyStoreWrapper identityKeyStoreWrapper,
+                                                TrustKeyStoreWrapper trustKeyStoreWrapper) {
         return new AzureKeyVaultRepository();
     }
 }
