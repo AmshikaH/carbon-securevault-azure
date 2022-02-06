@@ -54,9 +54,8 @@ password = "$secret{admin-password}"
 create_admin_account = true
 ```
 
-- To retrieve a specific version of a secret, there are two ways, namely: 
-  - Set the reference in the format `$secret{alias}` just like we did previously and set a corresponding environment variable with the `alias` as the variable name and the version as the value.
-  - Alternatively, you could set the reference in the format `$secret{alias_version}`.
+- To retrieve a specific version of a secret:
+  - Set the reference in the format `$secret{alias_version}`.
 
 2. This step differs depending on your version of the Identity Server.
    Add the following lines to the deployment.toml file.
