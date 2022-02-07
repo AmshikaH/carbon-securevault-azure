@@ -24,7 +24,7 @@ secVault.enabled=true
 secretRepositories=vault
 secretRepositories.vault.provider=org.wso2.carbon.securevault.azure.AzureKeyVaultRepositoryProvider
 secretRepositories.vault.properties.keyVaultName=<name-of-the-azure-key-vault>
-secretProviders.vault.repositories.azure.properties.managedIdentityClientId = <client-id-of-user-assigned-managed-identity>
+secretProviders.vault.repositories.azure.properties.managedIdentityClientId=<client-id-of-user-assigned-managed-identity>
 ```
 
 The last two lines above are properties that need to be edited according to the user's vault;
@@ -151,7 +151,7 @@ secVault.enabled=true
 secretRepositories=vault
 secretRepositories.vault.provider=org.wso2.carbon.securevault.azure.AzureKeyVaultRepositoryProvider
 secretRepositories.vault.properties.keyVaultName=<name-of-the-azure-key-vault>
-secretProviders.vault.repositories.azure.properties.managedIdentityClientId = <client-id-of-user-assigned-managed-identity>
+secretProviders.vault.repositories.azure.properties.managedIdentityClientId=<client-id-of-user-assigned-managed-identity>
 ```
 ## Debugging
 
