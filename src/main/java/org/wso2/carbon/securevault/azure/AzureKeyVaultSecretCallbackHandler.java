@@ -49,7 +49,7 @@ public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHa
     /**
      * Handles single secret callback.
      *
-     * @param singleSecretCallback a single secret callback
+     * @param singleSecretCallback a single secret callback.
      */
     @Override
     protected void handleSingleSecretCallback(SingleSecretCallback singleSecretCallback) {
@@ -72,7 +72,7 @@ public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHa
     /**
      * Reads keystore and primary key passwords from Azure Key Vault.
      *
-     * @param sameKeyAndKeyStorePass flag to indicate whether the keystore and primary key passwords are the same
+     * @param sameKeyAndKeyStorePass flag to indicate whether the keystore and primary key passwords are the same.
      */
     private void readPasswordFromKeyVault(boolean sameKeyAndKeyStorePass) {
         if (log.isDebugEnabled()) {
@@ -109,6 +109,7 @@ public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHa
     /**
      * Reads keystore and primary key passwords through the console if they could not be retrieved from the Key Vault.
      *
+     * @param sameKeyAndKeyStorePass flag to indicate whether the keystore and primary key passwords are the same.
      */
     private void readPasswordThroughConsole(boolean sameKeyAndKeyStorePass) {
         if (StringUtils.isEmpty(keyStorePassword)) {

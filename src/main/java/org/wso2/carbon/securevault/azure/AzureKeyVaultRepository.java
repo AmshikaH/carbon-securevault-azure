@@ -68,8 +68,8 @@ public class AzureKeyVaultRepository implements SecretRepository {
     /**
      * Initializes the Azure Key Vault as a Secret Repository by providing configuration properties.
      *
-     * @param properties Configuration properties
-     * @param id         Identifier to identify properties related to the corresponding repository
+     * @param properties Configuration properties.
+     * @param id Identifier to identify properties related to the corresponding repository.
      */
     @Override
     public void init(Properties properties, String id) {
@@ -149,7 +149,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
     /**
      * Reads Carbon Secure Vault configuration properties.
      *
-     * @param properties Configuration properties
+     * @param properties Configuration properties.
      */
     public static void readConfigProperties(Properties properties) {
         String legacyProvidersString = properties.getProperty("secretRepositories", null);
