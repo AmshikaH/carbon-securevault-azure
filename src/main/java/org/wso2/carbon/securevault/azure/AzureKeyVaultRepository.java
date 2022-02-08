@@ -68,11 +68,11 @@ public class AzureKeyVaultRepository implements SecretRepository {
      * Retrieves the secret from the Azure Key Vault.
      *
      * @param alias The name and version (the latter is optional) of the secret being retrieved.
-     * @return The secret corresponding to the alias from the Azure Key Vault. If not found, returns alias itself.
+     * @return The secret corresponding to the alias from the Azure Key Vault. If not found, returns an empty String.
      */
     @Override
     public String getSecret(String alias) {
-        String secret = null;
+        String secret = "";
         if (!StringUtils.isEmpty(keyVaultName)) {
             try {
                 secret = retrieveSecretFromVault(alias);
@@ -81,7 +81,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
             }
         }
         if (StringUtils.isEmpty(secret)) {
-            log.error("Secret retrieval failed. Value set to null. Check vault and/or secret configuration.");
+            log.error("Secret retrieval failed. Value set to empty string.");
         }
         return secret;
     }
