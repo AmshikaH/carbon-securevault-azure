@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.securevault.azure;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -74,6 +75,7 @@ public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHa
      *
      * @param sameKeyAndKeyStorePass flag to indicate whether the keystore and primary key passwords are the same.
      */
+    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
     private void readPasswordFromKeyVault(boolean sameKeyAndKeyStorePass) {
         if (log.isDebugEnabled()) {
             log.debug("Reading Carbon Secure Vault configuration properties from file.");

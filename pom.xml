@@ -115,6 +115,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-annotations</artifactId>
+            <version>4.5.3</version>
+        </dependency>
     </dependencies>
 
     <packaging>bundle</packaging>
