@@ -56,13 +56,9 @@ import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.VAULT;
  */
 public class AzureKeyVaultRepository implements SecretRepository {
 
-    // Log object used to add debug logging to the code
     private static final Log log = LogFactory.getLog(AzureKeyVaultRepository.class);
-    // String to store the name of the key vault read from the configuration file
     private static String keyVaultName;
-    // String to store the client id of the user-assigned managed identity (if used) read from the configuration file
     private static String managedIdentityClientId;
-    // Secret Client used to retrieve secrets from Azure Key Vault
     private static SecretClient secretClient;
 
     /**
@@ -73,8 +69,10 @@ public class AzureKeyVaultRepository implements SecretRepository {
      */
     @Override
     public void init(Properties properties, String id) {
+
         String keyStore = properties.getProperty(KEY + STORE + DOT + IDENTITY + DOT + STORE + DOT + SECRET_PROVIDER);
         String primaryKey = properties.getProperty(KEY + STORE + DOT + IDENTITY + DOT + KEY + DOT + SECRET_PROVIDER);
+
         if (!(keyStore.equals(SECRET_CALLBACK_HANDLER) && primaryKey.equals(SECRET_CALLBACK_HANDLER))) {
             authenticateToKeyVault(properties);
         }
@@ -88,7 +86,9 @@ public class AzureKeyVaultRepository implements SecretRepository {
      */
     @Override
     public String getSecret(String alias) {
+
         String secret = "";
+
         if (!StringUtils.isEmpty(keyVaultName)) {
             try {
                 secret = retrieveSecretFromVault(alias);
@@ -96,9 +96,11 @@ public class AzureKeyVaultRepository implements SecretRepository {
                 log.error("Error occurred during secret retrieval. Check vault and/or secret configuration.", e);
             }
         }
+
         if (StringUtils.isEmpty(secret)) {
             log.error("Secret retrieval failed. Value set to empty string.");
         }
+
         return secret;
     }
 
@@ -127,12 +129,16 @@ public class AzureKeyVaultRepository implements SecretRepository {
      * @return The secret corresponding to the alias from the Azure Key Vault.
      */
     private String retrieveSecretFromVault(String alias) {
+
         String secretName = alias;
         String secretVersion = "";
+
         if (alias.contains("_")) {
             int underscoreIndex = alias.indexOf("_");
+
             secretName = alias.substring(0, underscoreIndex);
             secretVersion = alias.substring(underscoreIndex + 1);
+
             if (log.isDebugEnabled()) {
                 log.debug("Secret version found. Retrieving the specified version of secret.");
             }
@@ -141,8 +147,10 @@ public class AzureKeyVaultRepository implements SecretRepository {
                 log.debug("Secret version not found. Retrieving latest version of secret.");
             }
         }
+
         KeyVaultSecret retrievedSecret = secretClient.getSecret(secretName, secretVersion);
         String secret = retrievedSecret.getValue();
+
         return secret;
     }
 
@@ -152,8 +160,10 @@ public class AzureKeyVaultRepository implements SecretRepository {
      * @param properties Configuration properties.
      */
     public static void readConfigProperties(Properties properties) {
+
         String legacyProvidersString = properties.getProperty("secretRepositories", null);
         boolean novelFlag;
+
         if (StringUtils.isEmpty(legacyProvidersString)) {
             if (log.isDebugEnabled()) {
                 log.debug("Legacy provider not found. Using novel configurations.");
@@ -165,13 +175,16 @@ public class AzureKeyVaultRepository implements SecretRepository {
             }
             novelFlag = false;
         }
+
         String legacyPropertyPrefix = SECRET_REPOSITORIES + DOT + VAULT + DOT + PROPERTIES + DOT;
         String novelPropertyPrefix = SECRET_PROVIDERS + DOT + VAULT + DOT + REPOSITORIES + DOT +
                 AZURE + PROPERTIES + DOT;
+
         String propertyKeyVaultName = novelFlag ? (novelPropertyPrefix + KEY_VAULT_NAME) :
                 (legacyPropertyPrefix + KEY_VAULT_NAME);
         String propertyManagedIdentityClientID = novelFlag ? (novelPropertyPrefix + MANAGED_IDENTITY_CLIENT_ID) :
                 (legacyPropertyPrefix + MANAGED_IDENTITY_CLIENT_ID);
+
         keyVaultName = properties.getProperty(propertyKeyVaultName);
         managedIdentityClientId = properties.getProperty(propertyManagedIdentityClientID);
     }
@@ -183,18 +196,23 @@ public class AzureKeyVaultRepository implements SecretRepository {
      * @return The credential chain mentioned above.
      */
     private static ChainedTokenCredential createAuthenticationChain() {
+
         EnvironmentCredential environmentCredential = new EnvironmentCredentialBuilder()
                 .build();
+
         ManagedIdentityCredential managedIdentityCredential = new ManagedIdentityCredentialBuilder()
                 .clientId(managedIdentityClientId)
                 .build();
+
         AzureCliCredential azureCliCredential = new AzureCliCredentialBuilder().
                 build();
+
         ChainedTokenCredential credentialChain = new ChainedTokenCredentialBuilder()
                 .addFirst(environmentCredential)
                 .addLast(managedIdentityCredential)
                 .addLast(azureCliCredential)
                 .build();
+
         return  credentialChain;
     }
 
@@ -202,21 +220,27 @@ public class AzureKeyVaultRepository implements SecretRepository {
      * Authenticates to the Key Vault using a credential chain.
      */
     public static void authenticateToKeyVault(Properties properties) {
+
         if (log.isDebugEnabled()) {
             log.debug("Initializing Azure Key Vault connection.");
         }
+
         readConfigProperties(properties);
+
         if (StringUtils.isEmpty(keyVaultName)) {
             if (log.isDebugEnabled()) {
                 log.error("Azure key vault name not found. Value cannot be null. " +
                         "Check whether the name of the vault has been configured properly.");
             }
         }
+
         if (StringUtils.isEmpty(managedIdentityClientId)) {
             if (log.isDebugEnabled()) {
                 log.debug("Managed identity clientId not found in configuration file. Checking environment variables.");
             }
+
             managedIdentityClientId = System.getenv(ENV_MI_CLIENT_ID);
+
             if (StringUtils.isEmpty(managedIdentityClientId) && log.isDebugEnabled()) {
                 log.debug("Managed identity clientId not found in environment variables. Value set to null.");
             }
@@ -225,6 +249,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
                 log.debug("Managed identity clientId found in configuration file. Using configured value.");
             }
         }
+
         String keyVaultUri = HTTPS_COLON_DOUBLE_SLASH + keyVaultName + DOT + VAULT + DOT + AZURE + DOT + NET;
         secretClient = new SecretClientBuilder()
                 .vaultUrl(keyVaultUri)

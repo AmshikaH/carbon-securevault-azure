@@ -54,15 +54,19 @@ public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHa
      */
     @Override
     protected void handleSingleSecretCallback(SingleSecretCallback singleSecretCallback) {
+
         if (keyStorePassword == null && privateKeyPassword == null) {
             boolean sameKeyAndKeyStorePass = true;
             String keyPassword = System.getProperty(KEY + DOT + PASSWORD);
+
             if (keyPassword != null && keyPassword.trim().equals("true")) {
                 sameKeyAndKeyStorePass = false;
             }
+
             readPasswordFromKeyVault(sameKeyAndKeyStorePass);
             readPasswordThroughConsole(sameKeyAndKeyStorePass);
         }
+
         if (singleSecretCallback.getId().equals(IDENTITY + DOT + KEY + DOT + PASSWORD)) {
             singleSecretCallback.setSecret(privateKeyPassword);
         } else {
@@ -77,11 +81,14 @@ public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHa
      */
     @SuppressFBWarnings("PATH_TRAVERSAL_IN")
     private void readPasswordFromKeyVault(boolean sameKeyAndKeyStorePass) {
+
         if (log.isDebugEnabled()) {
             log.debug("Reading Carbon Secure Vault configuration properties from file.");
         }
+
         InputStream inputStream = null;
         Properties properties = new Properties();
+
         try {
             inputStream = new FileInputStream(CONFIG_FILE_PATH);
             properties.load(inputStream);
@@ -96,10 +103,13 @@ public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHa
                 log.warn("Error closing input stream of configuration file.");
             }
         }
+
         AzureKeyVaultRepository.authenticateToKeyVault(properties);
         AzureKeyVaultRepository azureKeyVaultRepository = new AzureKeyVaultRepository();
+
         String keyStoreAlias = properties.getProperty(KEY + STORE + DOT + IDENTITY + DOT + STORE + DOT + ALIAS);
         String privateKeyAlias = properties.getProperty(KEY + STORE + DOT + IDENTITY + KEY + STORE + DOT + ALIAS);
+
         keyStorePassword = azureKeyVaultRepository.getSecret(keyStoreAlias);
         if (sameKeyAndKeyStorePass) {
             privateKeyPassword = keyStorePassword;
@@ -114,12 +124,16 @@ public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHa
      * @param sameKeyAndKeyStorePass flag to indicate whether the keystore and primary key passwords are the same.
      */
     private void readPasswordThroughConsole(boolean sameKeyAndKeyStorePass) {
+
         if (StringUtils.isEmpty(keyStorePassword)) {
+
             if (log.isDebugEnabled()) {
                 log.debug("Retrieval of keystore and private key password from Azure Key Vault failed.");
             }
+
             Console console;
             char[] password;
+
             if (sameKeyAndKeyStorePass) {
                 if ((console = System.console()) != null && (password = console.readPassword("[%s]",
                         "Enter KeyStore and Private Key Password: ")) != null) {
@@ -131,6 +145,7 @@ public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHa
                         "Enter KeyStore Password:")) != null) {
                     keyStorePassword = String.valueOf(password);
                 }
+
                 if ((console = System.console()) != null &&
                         (password = console.readPassword("[%s]",
                                 "Enter Private Key Password: ")) != null) {
