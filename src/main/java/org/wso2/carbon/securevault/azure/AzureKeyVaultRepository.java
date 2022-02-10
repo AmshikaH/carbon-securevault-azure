@@ -159,7 +159,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
      *
      * @param properties Configuration properties.
      */
-    public static void readConfigProperties(Properties properties) {
+    private static void readConfigProperties(Properties properties) {
 
         String legacyProvidersString = properties.getProperty("secretRepositories", null);
         boolean novelFlag;
