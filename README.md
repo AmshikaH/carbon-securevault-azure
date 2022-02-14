@@ -90,7 +90,7 @@ The last three lines given above are properties that need to be edited according
 
 You have 3 choices for the authentication credential you wish to use and it is necessary to specify your choice either as a configuration property or an environment variable.
 
-1. [Environment Variables](https://docs.microsoft.com/en-us/azure/developer/java/sdk/identity-azure-hosted-auth#environment-variables) - value must be set to`env`
+1. [Environment Variables](https://docs.microsoft.com/en-us/azure/developer/java/sdk/identity-azure-hosted-auth#environment-variables) - value must be set to `env`
 2. [Managed Identities](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview) - value must be set to `mi`
 3. [The Default Azure Credential Chain](https://docs.microsoft.com/en-us/azure/developer/java/sdk/identity-azure-hosted-auth#default-azure-credential) - value must be set to `chain`
     
