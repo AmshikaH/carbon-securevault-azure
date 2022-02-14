@@ -98,7 +98,7 @@ You have 3 choices for the authentication credential you wish to use and it is n
 
 Example:
 
-- Configuring it as a property in the configuration file (see [Step 2: Enabling Carbon Secure Vault](#step-2-enabling-carbon-secure-vault)):
+- Configuring option 1 as a property in the configuration file (see [Step 2: Enabling Carbon Secure Vault](#step-2-enabling-carbon-secure-vault)):
 
    ```
    secretRepositories.vault.properties.credential=env
