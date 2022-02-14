@@ -17,6 +17,7 @@
 package org.wso2.carbon.securevault.azure;
 
 import com.azure.core.credential.TokenCredential;
+import com.azure.core.exception.ResourceNotFoundException;
 import com.azure.identity.CredentialUnavailableException;
 import com.azure.identity.DefaultAzureCredentialBuilder;
 import com.azure.identity.EnvironmentCredentialBuilder;
@@ -99,7 +100,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
         if (StringUtils.isNotEmpty(keyVaultName)) {
             try {
                 secret = retrieveSecretFromVault(alias);
-            } catch (Exception e) {
+            } catch (ResourceNotFoundException e) {
                 log.error("Error occurred during secret retrieval. Check vault and/or secret configuration.", e);
             }
         }
@@ -293,13 +294,11 @@ public class AzureKeyVaultRepository implements SecretRepository {
             if (StringUtils.isEmpty(value)) {
                 log.error(Array.get(logs, 1));
             } else {
-
                 if (log.isDebugEnabled()) {
                     log.debug(Array.get(logs, 2));
                 }
             }
         } else {
-
             if (log.isDebugEnabled()) {
                 log.debug(Array.get(logs, 3));
             }
@@ -321,31 +320,29 @@ public class AzureKeyVaultRepository implements SecretRepository {
         if (StringUtils.isNotEmpty(credential)) {
             switch(credential) {
                 case ENV_CREDENTIAL:
-
                     tokenCredential = new EnvironmentCredentialBuilder().
                             build();
                     break;
-                case MI_CREDENTIAL:
 
+                case MI_CREDENTIAL:
                     tokenCredential = new ManagedIdentityCredentialBuilder()
                             .clientId(managedIdentityClientId)
                             .build();
                     break;
-                case CHAIN_CREDENTIAL:
 
+                case CHAIN_CREDENTIAL:
                     tokenCredential = new DefaultAzureCredentialBuilder()
                             .managedIdentityClientId(managedIdentityClientId)
                             .build();
                     break;
-                default:
 
+                default:
                     throw new CredentialUnavailableException("Invalid choice for Key Vault authentication credential." +
                             " Set value to one out of 'env', 'mi' or 'chain' to use " +
                             "Environment Credential Authentication, Managed Identity Authentication or " +
                             "Default Azure Credential Chain Authentication respectively.");
             }
         } else {
-
             throw new CredentialUnavailableException("Key Vault authentication credential not configured. " +
                     "Set configuration property or environment variable with 'env', 'mi' or 'chain' to use " +
                     "Environment Credential Authentication, Managed Identity Authentication or " +
