@@ -30,6 +30,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.securevault.secret.SecretRepository;
 
 import java.lang.reflect.Array;
+import java.net.UnknownHostException;
 import java.util.Properties;
 
 import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.DOT;
@@ -95,7 +96,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
 
         String secret = "";
 
-        if (!StringUtils.isEmpty(keyVaultName)) {
+        if (StringUtils.isNotEmpty(keyVaultName)) {
             try {
                 secret = retrieveSecretFromVault(alias);
             } catch (Exception e) {
@@ -159,9 +160,8 @@ public class AzureKeyVaultRepository implements SecretRepository {
         }
 
         KeyVaultSecret retrievedSecret = secretClient.getSecret(secretName, secretVersion);
-        String secret = retrievedSecret.getValue();
 
-        return secret;
+        return retrievedSecret.getValue();
     }
 
     /**
@@ -175,7 +175,11 @@ public class AzureKeyVaultRepository implements SecretRepository {
             log.debug("Initializing Azure Key Vault connection.");
         }
 
-        readConfigProperties(properties);
+        try {
+            readConfigProperties(properties);
+        } catch (UnknownHostException e) {
+            log.error("Error in Key Vault configuration.", e);
+        }
 
         try {
             secretClient = new SecretClientBuilder()
@@ -193,7 +197,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
      *
      * @param properties Configuration properties from file.
      */
-    private static void readConfigProperties(Properties properties) {
+    private static void readConfigProperties(Properties properties) throws UnknownHostException {
 
         String legacyProvidersString = properties.getProperty("secretRepositories", null);
         boolean novelFlag;
@@ -226,6 +230,10 @@ public class AzureKeyVaultRepository implements SecretRepository {
         credential = properties.getProperty(propertyCredential);
 
         readEnvProperties();
+
+        if (StringUtils.isEmpty(keyVaultName)) {
+            throw new UnknownHostException("Key Vault name not provided.");
+        }
     }
 
     /**
@@ -311,26 +319,30 @@ public class AzureKeyVaultRepository implements SecretRepository {
         TokenCredential tokenCredential;
 
         if (StringUtils.isNotEmpty(credential)) {
-            if (credential.equals(ENV_CREDENTIAL)) {
+            switch(credential) {
+                case ENV_CREDENTIAL:
 
-                tokenCredential = new EnvironmentCredentialBuilder().
-                        build();
-            } else if (credential.equals(MI_CREDENTIAL)) {
+                    tokenCredential = new EnvironmentCredentialBuilder().
+                            build();
+                    break;
+                case MI_CREDENTIAL:
 
-                tokenCredential = new ManagedIdentityCredentialBuilder()
-                        .clientId(managedIdentityClientId)
-                        .build();
-            } else if (credential.equals(CHAIN_CREDENTIAL)) {
+                    tokenCredential = new ManagedIdentityCredentialBuilder()
+                            .clientId(managedIdentityClientId)
+                            .build();
+                    break;
+                case CHAIN_CREDENTIAL:
 
-                tokenCredential = new DefaultAzureCredentialBuilder()
-                        .managedIdentityClientId(managedIdentityClientId)
-                        .build();
-            } else {
+                    tokenCredential = new DefaultAzureCredentialBuilder()
+                            .managedIdentityClientId(managedIdentityClientId)
+                            .build();
+                    break;
+                default:
 
-                throw new CredentialUnavailableException("Invalid choice for Key Vault authentication credential. " +
-                        "Set value to one out of 'env', 'mi' or 'chain' to use " +
-                        "Environment Credential Authentication, Managed Identity Authentication or " +
-                        "Default Azure Credential Chain Authentication respectively.");
+                    throw new CredentialUnavailableException("Invalid choice for Key Vault authentication credential." +
+                            " Set value to one out of 'env', 'mi' or 'chain' to use " +
+                            "Environment Credential Authentication, Managed Identity Authentication or " +
+                            "Default Azure Credential Chain Authentication respectively.");
             }
         } else {
 
