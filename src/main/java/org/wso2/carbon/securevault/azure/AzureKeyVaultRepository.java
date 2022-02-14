@@ -258,7 +258,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
         keyVaultName = config(keyVaultName, KV_NAME, keyVaultNameLogs);
 
         if (StringUtils.isNotEmpty(credential)) {
-            if (credential.equals("mi") || credential.equals("chain")) {
+            if (credential.equals(MI_CREDENTIAL) || credential.equals(CHAIN_CREDENTIAL)) {
                 String [] managedIdentityClientIdLogs = new String[4];
                 managedIdentityClientIdLogs [0] = "Managed identity clientId not found in configuration file. " +
                         "Checking environment variables.";
