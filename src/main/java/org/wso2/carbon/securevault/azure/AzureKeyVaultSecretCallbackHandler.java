@@ -20,21 +20,21 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.securevault.SecureVaultException;
 import org.wso2.securevault.secret.AbstractSecretCallbackHandler;
 import org.wso2.securevault.secret.SingleSecretCallback;
+
 import java.io.Console;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.ALIAS;
-import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.CONFIG_FILE_PATH;
 import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.DOT;
 import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.IDENTITY;
 import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.KEY;
-import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.PASSWORD;
 import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.STORE;
 
 /**
@@ -43,6 +43,10 @@ import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.STORE;
  */
 public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHandler {
 
+    private static final String ALIAS = "alias";
+    private static final String CONFIG_FILE_PATH = CarbonUtils.getCarbonConfigDirPath() + File.separator +
+            "security" + File.separator + "secret-conf.properties";
+    public static final String PASSWORD = "password";
     private static final Log log = LogFactory.getLog(AzureKeyVaultSecretCallbackHandler.class);
     private static String keyStorePassword;
     private static String privateKeyPassword;

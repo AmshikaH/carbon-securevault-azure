@@ -24,12 +24,16 @@ secVault.enabled=true
 secretRepositories=vault
 secretRepositories.vault.provider=org.wso2.carbon.securevault.azure.AzureKeyVaultRepositoryProvider
 secretRepositories.vault.properties.keyVaultName=<name-of-the-azure-key-vault>
+secretRepositories.vault.properties.credential=<choice-of-authentication-credential>
 secretProviders.vault.repositories.azure.properties.managedIdentityClientId=<client-id-of-user-assigned-managed-identity>
 ```
 
-The last two lines above are properties that need to be edited according to the user's vault;
-- secretRepositories.vault.properties.keyVaultName: the name of the Azure Key Vault which is to be used as a secret repository.
-- [optional] secretProviders.vault.repositories.azure.properties.managedIdentityClientId: if authentication to the Azure Key Vault is to be done via a user-assigned managed identity, the client id of this identity. You may also choose to set this value as an environment variable named “MI_CLIENT_ID” instead of adding it here.
+The last three lines given above are properties that need to be edited according to the user's vault;
+- secretRepositories.vault.properties.keyVaultName: the name of the Key Vault which is to be used as a secret repository. You may also choose to set this value as an environment variable named `KV_NAME` instead of adding it here.
+- secretRepositories.vault.properties.credential: the credential you wish to use to authenticate to the Key Vault. You may also choose to set this value as an environment variable named “CREDENTIAL” instead of adding it here. See [Step 4: Setting Up Authentication to Azure Key Vault](#step-4-setting-up-azure-key-vault) for further details.
+- [optional] secretProviders.vault.repositories.azure.properties.managedIdentityClientId: if authentication to the Key Vault is to be done via a user-assigned managed identity, the client id of this identity. You may also choose to set this value as an environment variable named `MI_CLIENT_ID` instead of adding it here.
+
+***Note that in all 3 cases above, if the value has been set in the configuration file and as an environment variable, the value set in the configuration file is given priority and will be the one that is used.***
 
 ## Step 3: Referencing Deployment Secrets
 
@@ -84,9 +88,27 @@ The last two lines above are properties that need to be edited according to the 
 
 ## Step 4: Setting Up Authentication to Azure Key Vault
 
-An authentication chain has been used to allow you the flexibility to choose your preferred way. The authentication chain supports authentication via [environment variables](https://docs.microsoft.com/en-us/azure/developer/java/sdk/identity-azure-hosted-auth#environment-variables), [managed identities](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview) or the [Azure CLI](https://docs.microsoft.com/en-us/azure/developer/java/sdk/identity-dev-env-auth#azure-cli-credential).
+You have 3 choices for the authentication credential you wish to use. It is required to specify your credential choice either as a configuration property or an environment variable.
 
-If you choose to authenticate via a user-assigned managed identity, see [Step 2: Enabling Carbon Secure Vault](#step-2-enabling-carbon-secure-vault) above regarding setting the managed identity's client id.
+1) [Environment Variables](https://docs.microsoft.com/en-us/azure/developer/java/sdk/identity-azure-hosted-auth#environment-variables) - value must be set to`env`
+2) [Managed Identities](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview) - value must be set to `mi`
+3) [The Default Azure Credential Chain](https://docs.microsoft.com/en-us/azure/developer/java/sdk/identity-azure-hosted-auth#default-azure-credential) - value must be set to `chain`
+   The Default Azure Credential Chain supports authentication through environment variables, managed identities, IDE-specific credentials and the Azure CLI in the given order.
+
+Configuring it as a property in the configuration file (see [Step 2: Enabling Carbon Secure Vault](#step-2-enabling-carbon-secure-vault)):
+
+```
+secretRepositories.vault.properties.credential=env
+```
+
+Alternatively, you could set it as an environment variable named `CREDENTIAL`:
+
+```
+CREDENTIAL=env
+```
+
+[Optional:]
+If you choose to authenticate via a user-assigned managed identity, the managed identity's client id can be set in the same manner, i.e., as a configuration property (`secretProviders.vault.repositories.azure.properties.managedIdentityClientId`) or an environment variable named `MI_CLIENT_ID`.
 
 ## Step 5: Carbon Secure Vault Root Password
 
@@ -151,6 +173,7 @@ secVault.enabled=true
 secretRepositories=vault
 secretRepositories.vault.provider=org.wso2.carbon.securevault.azure.AzureKeyVaultRepositoryProvider
 secretRepositories.vault.properties.keyVaultName=<name-of-the-azure-key-vault>
+secretRepositories.vault.properties.credential=<choice-of-authentication-credential>
 secretProviders.vault.repositories.azure.properties.managedIdentityClientId=<client-id-of-user-assigned-managed-identity>
 ```
 ## Debugging
