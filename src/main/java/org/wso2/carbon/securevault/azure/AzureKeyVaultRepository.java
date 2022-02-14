@@ -17,7 +17,6 @@
 package org.wso2.carbon.securevault.azure;
 
 import com.azure.core.credential.TokenCredential;
-import com.azure.core.exception.ResourceNotFoundException;
 import com.azure.identity.CredentialUnavailableException;
 import com.azure.identity.DefaultAzureCredentialBuilder;
 import com.azure.identity.EnvironmentCredentialBuilder;
@@ -100,7 +99,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
         if (StringUtils.isNotEmpty(keyVaultName)) {
             try {
                 secret = retrieveSecretFromVault(alias);
-            } catch (ResourceNotFoundException e) {
+            } catch (Exception e) {
                 log.error("Error occurred during secret retrieval. Check vault and/or secret configuration.", e);
             }
         }
