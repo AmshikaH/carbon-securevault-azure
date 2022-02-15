@@ -46,7 +46,7 @@ public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHa
     private static final String ALIAS = "alias";
     private static final String CONFIG_FILE_PATH = CarbonUtils.getCarbonConfigDirPath() + File.separator +
             "security" + File.separator + "secret-conf.properties";
-    public static final String PASSWORD = "password";
+    private static final String PASSWORD = "password";
     private static final Log log = LogFactory.getLog(AzureKeyVaultSecretCallbackHandler.class);
     private static String keyStorePassword;
     private static String privateKeyPassword;

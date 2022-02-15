@@ -29,9 +29,9 @@ secretProviders.vault.repositories.azure.properties.managedIdentityClientId=<cli
 ```
 
 The last three lines given above are properties that need to be edited according to the user's vault;
-- secretRepositories.vault.properties.keyVaultName: the name of the Key Vault which is to be used as a secret repository. You may also choose to set this value as an environment variable named `KV_NAME` instead of adding it here.
-- secretRepositories.vault.properties.credential: the credential you wish to use to authenticate to the Key Vault. You may also choose to set this value as an environment variable named `CREDENTIAL` instead of adding it here. See [Step 4: Setting Up Authentication to Azure Key Vault](#step-4-setting-up-authentication-to-azure-key-vault) for further details.
-- (optional) secretProviders.vault.repositories.azure.properties.managedIdentityClientId: if authentication to the Key Vault is to be done via a user-assigned managed identity, the client id of this identity. You may also choose to set this value as an environment variable named `MI_CLIENT_ID` instead of adding it here.
+- `secretRepositories.vault.properties.keyVaultName`: the name of the Key Vault which is to be used as a secret repository. You may also choose to set this value as an environment variable named `KV_NAME` instead of adding it here.
+- `secretRepositories.vault.properties.credential`: the credential you wish to use to authenticate to the Key Vault. You may also choose to set this value as an environment variable named `CREDENTIAL` instead of adding it here. See [Step 4: Setting Up Authentication to Azure Key Vault](#step-4-setting-up-authentication-to-azure-key-vault) for further details.
+- (optional) `secretProviders.vault.repositories.azure.properties.managedIdentityClientId`: if authentication to the Key Vault is to be done via a user-assigned managed identity, the client id of this identity. You may also choose to set this value as an environment variable named `MI_CLIENT_ID` instead of adding it here.
 
 ***Note that in all 3 cases above, if the value has been set in the configuration file and as an environment variable, the value set in the configuration file is given priority and will be the one that is used.***
 

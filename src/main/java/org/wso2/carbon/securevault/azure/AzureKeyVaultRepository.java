@@ -104,7 +104,9 @@ public class AzureKeyVaultRepository implements SecretRepository {
             }
         }
 
-        if (StringUtils.isEmpty(secret)) {
+        if (StringUtils.isNotEmpty(secret)) {
+            log.debug("Secret was successfully retrieved.");
+        } else {
             log.error("Secret retrieval failed. Value set to empty string.");
         }
 
