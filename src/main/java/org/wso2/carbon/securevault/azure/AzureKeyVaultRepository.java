@@ -69,6 +69,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
     private static String keyVaultName;
     private static String managedIdentityClientId;
     private static SecretClient secretClient;
+    private SecretRepository parentRepository;
 
     /**
      * Initializes the Azure Key Vault as a Secret Repository by providing configuration properties.
@@ -115,21 +116,34 @@ public class AzureKeyVaultRepository implements SecretRepository {
         return secret;
     }
 
+    /**
+     * Gets the encrypted value of the secret corresponding to the alias.
+     * This feature is not supported by this extension.
+     *
+     * @throws UnsupportedOperationException
+     */
     @Override
     public String getEncryptedData(String alias) {
-        // This method was implemented from the interface and has been intentionally left empty.
-        return null;
+        throw new UnsupportedOperationException();
     }
 
+    /**
+     * Sets the parent repository. Allows secret repositories to be set in a chain
+     * so that one repository can get secrets from another.
+     */
     @Override
     public void setParent(SecretRepository parent) {
-        // This method was implemented from the interface and has been intentionally left empty.
+        this.parentRepository = parent;
     }
 
+    /**
+     * Gets the parent repository.
+     *
+     * @return Parent repository.
+     */
     @Override
     public SecretRepository getParent() {
-        // This method was implemented from the interface and has been intentionally left empty.
-        return null;
+        return this.parentRepository;
     }
 
     /**
@@ -200,6 +214,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
      * Reads Carbon Secure Vault configuration properties.
      *
      * @param properties Configuration properties from file.
+     * @throws UnknownHostException if the Key Vault name has not been provided.
      */
     private static void readConfigProperties(Properties properties) throws UnknownHostException {
 
@@ -280,9 +295,9 @@ public class AzureKeyVaultRepository implements SecretRepository {
     /**
      * Reads configuration properties from environment variables if not found in configuration file.
      *
-     * @param value Value of the configuration property
-     * @param envProperty Name of the environment variable that stores the value of the configuration property
-     * @param logs Set of logs used when reading configuration properties
+     * @param value Value of the configuration property.
+     * @param envProperty Name of the environment variable that stores the value of the configuration property.
+     * @param logs Set of logs used when reading configuration properties.
      */
     private static String config(String value, String envProperty, String[] logs) {
 
@@ -313,8 +328,10 @@ public class AzureKeyVaultRepository implements SecretRepository {
     /**
      * Creates a credential to use in authentication based on choice set by user.
      *
-     * @param credential Credential choice given by user
-     * @return Credential to be used in authentication
+     * @param credential Credential choice given by user.
+     * @return Credential to be used in authentication.
+     * @throws CredentialUnavailableException if the authentication credential choice
+     *                                        has not been provided or is invalid.
      */
     private static TokenCredential createChosenCredential(String credential) {
 
