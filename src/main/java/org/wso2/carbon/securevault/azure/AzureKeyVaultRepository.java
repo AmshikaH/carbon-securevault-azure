@@ -17,6 +17,7 @@
 package org.wso2.carbon.securevault.azure;
 
 import com.azure.core.credential.TokenCredential;
+import com.azure.identity.AzureCliCredentialBuilder;
 import com.azure.identity.CredentialUnavailableException;
 import com.azure.identity.DefaultAzureCredentialBuilder;
 import com.azure.identity.EnvironmentCredentialBuilder;
@@ -45,6 +46,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
 
     private static final String AZURE = "azure";
     private static final String CHAIN_CREDENTIAL = "chain";
+    private static final String CLI_CREDENTIAL = "cli";
     private static final String CREDENTIAL = "CREDENTIAL";
     private static final String ENV_CREDENTIAL = "env";
     private static final String MI_CLIENT_ID = "MI_CLIENT_ID";
@@ -331,6 +333,11 @@ public class AzureKeyVaultRepository implements SecretRepository {
                             .build();
                     break;
 
+                case CLI_CREDENTIAL:
+                    tokenCredential = new AzureCliCredentialBuilder()
+                            .build();
+                    break;
+
                 case CHAIN_CREDENTIAL:
                     tokenCredential = new DefaultAzureCredentialBuilder()
                             .managedIdentityClientId(managedIdentityClientId)
@@ -339,13 +346,13 @@ public class AzureKeyVaultRepository implements SecretRepository {
 
                 default:
                     throw new CredentialUnavailableException("Invalid choice for Key Vault authentication credential." +
-                            " Set value to one out of 'env', 'mi' or 'chain' to use " +
+                            " Set value to one out of 'env', 'mi', 'cli' or 'chain' to use " +
                             "Environment Credential Authentication, Managed Identity Authentication or " +
                             "Default Azure Credential Chain Authentication respectively.");
             }
         } else {
             throw new CredentialUnavailableException("Key Vault authentication credential not configured. " +
-                    "Set configuration property or environment variable with 'env', 'mi' or 'chain' to use " +
+                    "Set configuration property or environment variable with 'env', 'mi', cli' or 'chain' to use " +
                     "Environment Credential Authentication, Managed Identity Authentication or " +
                     "'Default Azure Credential Chain Authentication respectively.");
         }
