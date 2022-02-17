@@ -89,7 +89,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
     }
 
     /**
-     * Retrieves the secret from the Key Vault according to the specified version.
+     * Retrieves a secret from the Key Vault according to the specified version.
      * If a secret version has not been specified, the latest version is retrieved.
      *
      * @param alias The name and version (the latter is optional) of the secret being retrieved.
@@ -152,7 +152,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
     }
 
     /**
-     * Parses the secret reference into the secret name and its version.
+     * Parses a secret reference into the secret's name and version.
      *
      * @param alias The name and version (the latter is optional) of the secret being retrieved.
      * @return The secret corresponding to the alias in the Key Vault.
