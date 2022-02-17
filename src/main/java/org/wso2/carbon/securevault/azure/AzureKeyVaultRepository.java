@@ -72,7 +72,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
     private SecretRepository parentRepository;
 
     /**
-     * Initializes the Azure Key Vault as a Secret Repository by providing configuration properties.
+     * Initializes the Key Vault as a Secret Repository by providing configuration properties.
      *
      * @param properties Configuration properties from file.
      * @param id Identifier to identify properties related to the corresponding repository.
@@ -89,10 +89,11 @@ public class AzureKeyVaultRepository implements SecretRepository {
     }
 
     /**
-     * Retrieves the secret from the Azure Key Vault.
+     * Retrieves the secret from the Key Vault according to the specified version.
+     * If a secret version has not been specified, the latest version is retrieved.
      *
      * @param alias The name and version (the latter is optional) of the secret being retrieved.
-     * @return The secret corresponding to the alias from the Azure Key Vault. If not found, returns an empty String.
+     * @return The secret corresponding to the alias from the Key Vault. If not found, returns an empty String.
      */
     @Override
     public String getSecret(String alias) {
@@ -100,8 +101,12 @@ public class AzureKeyVaultRepository implements SecretRepository {
         String secret = "";
 
         if (StringUtils.isNotEmpty(keyVaultName)) {
+
+            String[] aliasComponents = parseSecretReference(alias);
+
             try {
-                secret = retrieveSecretFromVault(alias);
+                KeyVaultSecret retrievedSecret = secretClient.getSecret(aliasComponents[0], aliasComponents[1]);
+                secret = retrievedSecret.getValue();
             } catch (Exception e) {
                 log.error("Error occurred during secret retrieval. Check vault and/or secret configuration.", e);
             }
@@ -147,13 +152,12 @@ public class AzureKeyVaultRepository implements SecretRepository {
     }
 
     /**
-     * Retrieves the secret according to the specified version.
-     * If a secret version has not been specified, the latest version is retrieved.
+     * Parses the secret reference into the secret name and its version.
      *
      * @param alias The name and version (the latter is optional) of the secret being retrieved.
      * @return The secret corresponding to the alias in the Key Vault.
      */
-    private String retrieveSecretFromVault(String alias) {
+    private String[] parseSecretReference(String alias) {
 
         String secretName = alias;
         String secretVersion = "";
@@ -177,9 +181,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
             }
         }
 
-        KeyVaultSecret retrievedSecret = secretClient.getSecret(secretName, secretVersion);
-
-        return retrievedSecret.getValue();
+        return new String[] {secretName, secretVersion};
     }
 
     /**
@@ -266,7 +268,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
                 "Configure credential choice in configuration file or as an environment variable.";
         credentialLogs [2] = "Credential choice found as an environment variable. Value set to this.";
         credentialLogs [3] = "Credential choice found in configuration file. Value set to this.";
-        credential = config(credential, CREDENTIAL, credentialLogs);
+        credential = getConfig(credential, CREDENTIAL, credentialLogs);
 
         String [] keyVaultNameLogs = new String[4];
         keyVaultNameLogs [0] = "Key Vault name not found in configuration file. Checking environment variables.";
@@ -274,7 +276,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
                 "Configure key vault name in configuration file or as an environment variable.";
         keyVaultNameLogs [2] = "Key Vault name found as an environment variable. Value set to this.";
         keyVaultNameLogs [3] = "Key Vault name found in configuration file. Value set to this.";
-        keyVaultName = config(keyVaultName, KV_NAME, keyVaultNameLogs);
+        keyVaultName = getConfig(keyVaultName, KV_NAME, keyVaultNameLogs);
 
         if (StringUtils.isNotEmpty(credential)) {
             if (credential.equals(MI_CREDENTIAL) || credential.equals(CHAIN_CREDENTIAL)) {
@@ -287,7 +289,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
                         "Value set to this.";
                 managedIdentityClientIdLogs [3] = "Managed identity clientId found in configuration file. " +
                         "Value set to this.";
-                managedIdentityClientId = config(managedIdentityClientId, MI_CLIENT_ID, managedIdentityClientIdLogs);
+                managedIdentityClientId = getConfig(managedIdentityClientId, MI_CLIENT_ID, managedIdentityClientIdLogs);
             }
         }
     }
@@ -299,7 +301,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
      * @param envProperty Name of the environment variable that stores the value of the configuration property.
      * @param logs Set of logs used when reading configuration properties.
      */
-    private static String config(String value, String envProperty, String[] logs) {
+    private static String getConfig(String value, String envProperty, String[] logs) {
 
         if (StringUtils.isEmpty(value)) {
 

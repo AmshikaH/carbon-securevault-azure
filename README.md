@@ -5,11 +5,11 @@
 1. Clone this project onto your computer or download it as a zip.
 2. Run `mvn clean install` from the carbon-securevault-azure directory to build the OSGi bundle for the extension.
 3. Copy this bundle from the target directory within the project.
-4. Insert the bundle within the Identity Server by pasting it into the <IS_HOME>/repository/components/dropins directory.
+4. Insert the bundle within the Identity Server by pasting it into the `dropins` directory (`<IS_HOME>/repository/components/dropins`).
 
 ## Step 2: Enabling Carbon Secure Vault
 
-Add the following lines to the Carbon Secure Vault configuration file `secret-conf.properties`  [<IS_HOME>/repository/conf/security/secret-conf.properties].
+Add the following lines to the `secret-conf.properties` Carbon Secure Vault configuration file (`<IS_HOME>/repository/conf/security/secret-conf.properties`).
 
 ```
 keystore.identity.location=repository/resources/security/wso2carbon.jks
@@ -37,7 +37,7 @@ The last three lines given above are properties that need to be edited according
 
 ## Step 3: Referencing Deployment Secrets
 
-1. In the deployment.toml file (<IS_HOME>/repository/conf/deployment.toml), replace each value to be stored as a secret with a reference.
+1. In the `deployment.toml` file (`<IS_HOME>/repository/conf/deployment.toml`), replace each value to be stored as a secret with a reference.
 
    - To retrieve the latest version of a secret: set the reference using an alias in the format `$secret{alias}`, where the alias is the name of the secret in your Key Vault.
 
@@ -49,7 +49,7 @@ The last three lines given above are properties that need to be edited according
      create_admin_account = true
      ```
 
-     The password in the above could be stored in the user's Key Vault as a secret with the name "admin-password". Then the configuration would be updated as follows.
+     The password in the above could be stored in the user's Key Vault as a secret with the name `admin-password`. Then the configuration would be updated as follows.
 
      ```
      [super_admin]
@@ -64,7 +64,7 @@ The last three lines given above are properties that need to be edited according
    
    **Version 5.11.0 and below:**
    
-   Add the following lines to the deployment.toml file.
+   Add the following lines to the `deployment.toml` file.
    ```
    [secrets]
    alias1 = ""
@@ -80,7 +80,7 @@ The last three lines given above are properties that need to be edited according
 
    **Version 5.12.0 onwards:**
    
-   Add the following lines to the deployment.toml file.
+   Add the following lines to the `deployment.toml` file.
    ```
    [runtime_secrets]
    enable = "true"
@@ -88,7 +88,7 @@ The last three lines given above are properties that need to be edited according
 
 ## Step 4: Setting Up Authentication to Azure Key Vault
 
-You have 3 choices for the authentication credential you wish to use and it is necessary to specify your choice either as a configuration property or an environment variable.
+You have 3 choices for the authentication credential you wish to use, and it is necessary to specify your choice either as a configuration property or an environment variable.
 
 1. [Environment Variables](https://docs.microsoft.com/en-us/azure/developer/java/sdk/identity-azure-hosted-auth#environment-variables) - value must be set to `env`
 2. [Managed Identities](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview) - value must be set to `mi`
@@ -126,13 +126,13 @@ You may do this in one of the following ways.
 
 If neither of the other options have been configured, you will be prompted to enter the keystore and private key password, where you may then enter it manually.
 
-`[Enter KeyStore and Private Key Password :]`
+`[Enter KeyStore and Private Key Password: ]`
 
 However, this is not possible when you run the server as a background task, such as when it's hosted in the cloud, so we could instead save the value elsewhere and have it automatically read as mentioned in methods 2 and 3.
 
 ### 2. Storing in a file within the Identity Server
 
-Create a file containing the password in the <IS_HOME> directory and name it as described below.
+Create a file containing the password in the `<IS_HOME>` directory and name it as described below.
 
 - If you wish to have the file deleted automatically after the server starts, the file name will have `tmp` (i.e., temporary) in it as follows.
 
@@ -150,9 +150,9 @@ Note that, by default, both the private key and keystore passwords are assumed t
 
 ### 3. Storing within your Key Vault
 
-1. Create a secret and store your password(s) in your Vault.
-2. Edit the configurations in the secret-conf.properties file () mentioned in step 2 as follows.
-   1. Replace the values for the two properties `keystore.identity.store.secretProvider` and `keystore.identity.key.secretProvider` with `org.wso2.carbon.securevault.azure.AzureKeyVaultSecretCallbackHandler`. This is the fully qualified class path of the AzureKeyVaultSecretCallbackHandler, which we will be using instead of the DefaultSecretCallbackHandler.
+1. Create a secret and store your password(s) in your Key Vault.
+2. Edit the configurations in the `secret-conf.properties` file mentioned in [Step 2: Enabling Carbon Secure Vault](#step-2-enabling-carbon-secure-vault) as follows.
+   1. Replace the values for the two properties `keystore.identity.store.secretProvider` and `keystore.identity.key.secretProvider` with `org.wso2.carbon.securevault.azure.AzureKeyVaultSecretCallbackHandler`. This is the fully qualified class path of the Azure Key Vault Secret Callback Handler, which we will be using instead of the Default Secret Callback Handler.
    2. Provide the alias and version of your password(s) in the format `alias_version` as below. If only the alias is given, the latest version of the secret will be retrieved.
         ```
         keystore.identity.store.alias=<alias-and-version-of-password>
@@ -181,7 +181,7 @@ secretProviders.vault.repositories.azure.properties.managedIdentityClientId=<cli
 ```
 ## Debugging
 
-1. For debug logs, add the following lines to the log4j2.properties file (<IS_HOME>\repository\conf\log4j2.properties).
+1. For debug logs, add the following lines to the `log4j2.properties` file (`<IS_HOME>\repository\conf\log4j2.properties`).
 
    ```
    logger.org-wso2-carbon-securevault-azure.name=org.wso2.carbon.securevault.azure
@@ -190,7 +190,7 @@ secretProviders.vault.repositories.azure.properties.managedIdentityClientId=<cli
    logger.org-wso2-carbon-securevault-azure.appenderRef.CARBON_CONSOLE.ref = CARBON_CONSOLE
    ```
 
-2. Then add “org-wso2-carbon-securevault-azure” to the list of loggers as follows.
+2. Then add `org-wso2-carbon-securevault-azure` to the list of loggers as follows.
 
    ```
    loggers = AUDIT_LOG, trace-messages, ..., org-wso2-carbon-securevault-azure
