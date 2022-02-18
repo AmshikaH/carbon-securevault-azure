@@ -221,7 +221,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
      */
     private static void readConfigProperties(Properties properties) throws UnknownHostException {
 
-        String legacyProvidersString = properties.getProperty("secretRepositories", null);
+        String legacyProvidersString = properties.getProperty(SECRET_REPOSITORIES, null);
         boolean novelFlag;
 
         if (StringUtils.isEmpty(legacyProvidersString)) {
