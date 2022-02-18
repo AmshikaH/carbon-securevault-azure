@@ -112,7 +112,7 @@ public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHa
         AzureKeyVaultRepository azureKeyVaultRepository = new AzureKeyVaultRepository();
 
         String keyStoreAlias = properties.getProperty(KEY + STORE + DOT + IDENTITY + DOT + STORE + DOT + ALIAS);
-        String privateKeyAlias = properties.getProperty(KEY + STORE + DOT + IDENTITY + KEY + STORE + DOT + ALIAS);
+        String privateKeyAlias = properties.getProperty(KEY + STORE + DOT + IDENTITY + DOT + KEY + DOT + ALIAS);
 
         keyStorePassword = azureKeyVaultRepository.getSecret(keyStoreAlias);
         if (sameKeyAndKeyStorePass) {

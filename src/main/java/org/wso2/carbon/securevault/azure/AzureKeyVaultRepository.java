@@ -102,9 +102,8 @@ public class AzureKeyVaultRepository implements SecretRepository {
 
         if (StringUtils.isNotEmpty(keyVaultName)) {
 
-            String[] aliasComponents = parseSecretReference(alias);
-
             try {
+                String[] aliasComponents = parseSecretReference(alias);
                 KeyVaultSecret retrievedSecret = secretClient.getSecret(aliasComponents[0], aliasComponents[1]);
                 secret = retrievedSecret.getValue();
             } catch (Exception e) {
@@ -125,7 +124,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
      * Gets the encrypted value of the secret corresponding to the alias.
      * This feature is not supported by this extension.
      *
-     * @throws UnsupportedOperationException
+     * @throws UnsupportedOperationException - always
      */
     @Override
     public String getEncryptedData(String alias) {
@@ -159,21 +158,24 @@ public class AzureKeyVaultRepository implements SecretRepository {
      */
     private String[] parseSecretReference(String alias) {
 
-        String secretName = alias;
-        String secretVersion = "";
+        String[] aliasComponents = {alias, null};
 
         if (alias.contains("_")) {
-            int underscoreIndex = alias.indexOf("_");
+            if (StringUtils.countMatches(alias, "_") == 1) {
 
-            secretName = alias.substring(0, underscoreIndex);
-            secretVersion = alias.substring(underscoreIndex + 1);
+                aliasComponents = alias.split("_");
 
-            if (log.isDebugEnabled()) {
-                if (StringUtils.isNotEmpty(secretVersion)) {
-                    log.debug("Secret version found. Retrieving the specified version of secret.");
-                } else {
-                    log.debug("Secret version not found. Retrieving latest version of secret.");
+                if (log.isDebugEnabled()) {
+                    if (StringUtils.isNotEmpty(aliasComponents[1])) {
+                        log.debug("Secret version found. Retrieving the specified version of secret.");
+                    } else {
+                        log.debug("Secret version not found. Retrieving latest version of secret.");
+                    }
                 }
+            } else {
+                throw new IllegalArgumentException("Syntax error in secret reference. Secret reference " +
+                        "should be in the format 'secretName_secreReference'. " +
+                        "Note that there should be only one underscore.");
             }
         } else {
             if (log.isDebugEnabled()) {
@@ -181,11 +183,11 @@ public class AzureKeyVaultRepository implements SecretRepository {
             }
         }
 
-        return new String[] {secretName, secretVersion};
+        return aliasComponents;
     }
 
     /**
-     * Authenticates to the Key Vault using a credential chain.
+     * Authenticates to the Key Vault using the user's preferred credential.
      *
      * @param properties Configuration properties from file.
      */
@@ -209,7 +211,6 @@ public class AzureKeyVaultRepository implements SecretRepository {
         } catch (CredentialUnavailableException e) {
             log.error("Building secret client failed.", e);
         }
-
     }
 
     /**
@@ -237,7 +238,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
 
         String legacyPropertyPrefix = SECRET_REPOSITORIES + DOT + VAULT + DOT + PROPERTIES + DOT;
         String novelPropertyPrefix = SECRET_PROVIDERS + DOT + VAULT + DOT + REPOSITORIES + DOT +
-                AZURE + PROPERTIES + DOT;
+                AZURE + DOT + PROPERTIES + DOT;
 
         String propertyCredential = novelFlag ? (novelPropertyPrefix + CREDENTIAL.toLowerCase()) :
                 (legacyPropertyPrefix + CREDENTIAL.toLowerCase());
