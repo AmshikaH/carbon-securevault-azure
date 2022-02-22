@@ -174,7 +174,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
                 }
             } else {
                 throw new IllegalArgumentException("Syntax error in secret reference. Secret reference " +
-                        "should be in the format 'secretName_secreReference'. " +
+                        "should be in the format 'secretName_secretVersion'. " +
                         "Note that there should be only one underscore.");
             }
         } else {
