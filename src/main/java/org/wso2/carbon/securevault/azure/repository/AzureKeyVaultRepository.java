@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.securevault.azure;
+package org.wso2.carbon.securevault.azure.repository;
 
 import com.azure.core.credential.TokenCredential;
 import com.azure.identity.AzureCliCredentialBuilder;
@@ -32,12 +32,13 @@ import org.wso2.securevault.secret.SecretRepository;
 
 import java.lang.reflect.Array;
 import java.net.UnknownHostException;
+import java.util.Locale;
 import java.util.Properties;
 
-import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.DOT;
-import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.IDENTITY;
-import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.KEY;
-import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.STORE;
+import static org.wso2.carbon.securevault.azure.commons.AzureKeyVaultConstants.DOT;
+import static org.wso2.carbon.securevault.azure.commons.AzureKeyVaultConstants.IDENTITY;
+import static org.wso2.carbon.securevault.azure.commons.AzureKeyVaultConstants.KEY;
+import static org.wso2.carbon.securevault.azure.commons.AzureKeyVaultConstants.STORE;
 
 /**
  * Extension to facilitate the use of an Azure Key Vault as an external secret repository.
@@ -48,6 +49,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
     private static final String CHAIN_CREDENTIAL = "chain";
     private static final String CLI_CREDENTIAL = "cli";
     private static final String CREDENTIAL = "CREDENTIAL";
+    private static final String DELIMITER = "_";
     private static final String ENV_CREDENTIAL = "env";
     private static final String MI_CLIENT_ID = "MI_CLIENT_ID";
     private static final String MI_CREDENTIAL = "mi";
@@ -57,9 +59,10 @@ public class AzureKeyVaultRepository implements SecretRepository {
     private static final String MANAGED_IDENTITY_CLIENT_ID = "managedIdentityClientId";
     private static final String NET = "net";
     private static final String PROPERTIES = "properties";
+    private static final String REGEX = "[\r\n]";
     private static final String REPOSITORIES = "repositories";
     private static final String SECRET_CALLBACK_HANDLER =
-            "org.wso2.carbon.securevault.azure.AzureKeyVaultSecretCallbackHandler";
+            "org.wso2.carbon.securevault.azure.handler.AzureKeyVaultSecretCallbackHandler";
     private static final String SECRET_PROVIDER = "secretProvider";
     private static final String SECRET_PROVIDERS = "secretProviders";
     private static final String SECRET_REPOSITORIES = "secretRepositories";
@@ -160,10 +163,10 @@ public class AzureKeyVaultRepository implements SecretRepository {
 
         String[] aliasComponents = {alias, null};
 
-        if (alias.contains("_")) {
-            if (StringUtils.countMatches(alias, "_") == 1) {
+        if (alias.contains(DELIMITER)) {
+            if (StringUtils.countMatches(alias, DELIMITER) == 1) {
 
-                aliasComponents = alias.split("_");
+                aliasComponents = alias.split(DELIMITER);
 
                 if (log.isDebugEnabled()) {
                     if (StringUtils.isNotEmpty(aliasComponents[1])) {
@@ -240,8 +243,8 @@ public class AzureKeyVaultRepository implements SecretRepository {
         String novelPropertyPrefix = SECRET_PROVIDERS + DOT + VAULT + DOT + REPOSITORIES + DOT +
                 AZURE + DOT + PROPERTIES + DOT;
 
-        String propertyCredential = novelFlag ? (novelPropertyPrefix + CREDENTIAL.toLowerCase()) :
-                (legacyPropertyPrefix + CREDENTIAL.toLowerCase());
+        String propertyCredential = novelFlag ? (novelPropertyPrefix + CREDENTIAL.toLowerCase(Locale.ROOT)) :
+                (legacyPropertyPrefix + CREDENTIAL.toLowerCase(Locale.ROOT));
         String propertyKeyVaultName = novelFlag ? (novelPropertyPrefix + KEY_VAULT_NAME) :
                 (legacyPropertyPrefix + KEY_VAULT_NAME);
         String propertyManagedIdentityClientID = novelFlag ? (novelPropertyPrefix + MANAGED_IDENTITY_CLIENT_ID) :
@@ -307,21 +310,21 @@ public class AzureKeyVaultRepository implements SecretRepository {
         if (StringUtils.isEmpty(value)) {
 
             if (log.isDebugEnabled()) {
-                log.debug(Array.get(logs, 0));
+                log.debug(Array.get(logs, 0).toString().replaceAll(REGEX, ""));
             }
 
             value = System.getenv(envProperty);
 
             if (StringUtils.isEmpty(value)) {
-                log.error(Array.get(logs, 1));
+                log.error(Array.get(logs, 1).toString().replaceAll(REGEX, ""));
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug(Array.get(logs, 2));
+                    log.debug(Array.get(logs, 2).toString().replaceAll(REGEX, ""));
                 }
             }
         } else {
             if (log.isDebugEnabled()) {
-                log.debug(Array.get(logs, 3));
+                log.debug(Array.get(logs, 3).toString().replaceAll(REGEX, ""));
             }
         }
 

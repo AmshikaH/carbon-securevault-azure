@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.securevault.azure;
+package org.wso2.carbon.securevault.azure.commons;
 
 /**
  * Constants used in the extension.

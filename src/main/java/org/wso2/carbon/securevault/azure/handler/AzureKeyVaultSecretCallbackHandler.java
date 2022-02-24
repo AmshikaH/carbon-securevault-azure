@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.securevault.azure;
+package org.wso2.carbon.securevault.azure.handler;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.securevault.azure.repository.AzureKeyVaultRepository;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.securevault.SecureVaultException;
 import org.wso2.securevault.secret.AbstractSecretCallbackHandler;
@@ -32,10 +33,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.DOT;
-import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.IDENTITY;
-import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.KEY;
-import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.STORE;
+import static org.wso2.carbon.securevault.azure.commons.AzureKeyVaultConstants.DOT;
+import static org.wso2.carbon.securevault.azure.commons.AzureKeyVaultConstants.IDENTITY;
+import static org.wso2.carbon.securevault.azure.commons.AzureKeyVaultConstants.KEY;
+import static org.wso2.carbon.securevault.azure.commons.AzureKeyVaultConstants.STORE;
 
 /**
  * Secret Callback handler class if keystore and primary key passwords are stored in the
