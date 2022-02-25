@@ -161,6 +161,7 @@
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Export-Package>
                             org.wso2.carbon.securevault.azure.commons;version="${project.version}",
+                            org.wso2.carbon.securevault.azure.exception;version="${project.version}",
                             org.wso2.carbon.securevault.azure.handler;version="${project.version}",
                             org.wso2.carbon.securevault.azure.repository;version="${project.version}",
                         </Export-Package>

@@ -20,6 +20,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.securevault.azure.exception.AzureKeyVaultException;
 import org.wso2.carbon.securevault.azure.repository.AzureKeyVaultRepository;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.securevault.SecureVaultException;
@@ -109,17 +110,20 @@ public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHa
             }
         }
 
-        AzureKeyVaultRepository.authenticateToKeyVault(properties);
-        AzureKeyVaultRepository azureKeyVaultRepository = new AzureKeyVaultRepository();
+        try {
+            AzureKeyVaultRepository.buildSecretClient(properties);
+            AzureKeyVaultRepository azureKeyVaultRepository = new AzureKeyVaultRepository();
+            String keyStoreAlias = properties.getProperty(KEY + STORE + DOT + IDENTITY + DOT + STORE + DOT + ALIAS);
+            String privateKeyAlias = properties.getProperty(KEY + STORE + DOT + IDENTITY + DOT + KEY + DOT + ALIAS);
 
-        String keyStoreAlias = properties.getProperty(KEY + STORE + DOT + IDENTITY + DOT + STORE + DOT + ALIAS);
-        String privateKeyAlias = properties.getProperty(KEY + STORE + DOT + IDENTITY + DOT + KEY + DOT + ALIAS);
-
-        keyStorePassword = azureKeyVaultRepository.getSecret(keyStoreAlias);
-        if (sameKeyAndKeyStorePass) {
-            privateKeyPassword = keyStorePassword;
-        } else {
-            privateKeyPassword = azureKeyVaultRepository.getSecret(privateKeyAlias);
+            keyStorePassword = azureKeyVaultRepository.getSecret(keyStoreAlias);
+            if (sameKeyAndKeyStorePass) {
+                privateKeyPassword = keyStorePassword;
+            } else {
+                privateKeyPassword = azureKeyVaultRepository.getSecret(privateKeyAlias);
+            }
+        } catch (AzureKeyVaultException e) {
+            log.error("Building secret client failed.", e);
         }
     }
 
