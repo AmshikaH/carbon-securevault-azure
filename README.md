@@ -34,7 +34,7 @@ Then, add the next set of configurations as given below depending on whether you
 
    ```
    secretRepositories=vault
-   secretRepositories.vault.provider=org.wso2.carbon.securevault.azure.AzureKeyVaultRepositoryProvider
+   secretRepositories.vault.provider=org.wso2.carbon.securevault.azure.repository.AzureKeyVaultRepositoryProvider
    secretRepositories.vault.properties.keyVaultName=<name-of-the-azure-key-vault>
    secretRepositories.vault.properties.credential=<choice-of-authentication-credential>
    secretRepositories.vault.properties.managedIdentityClientId=<client-id-of-user-assigned-managed-identity>
@@ -44,9 +44,9 @@ Then, add the next set of configurations as given below depending on whether you
 
    ```
    secretProviders=vault
-   secretProviders.vault.provider=org.wso2.carbon.securevault.azure.AzureKeyVaultRepositoryProvider
+   secretProviders.vault.provider=org.wso2.carbon.securevault.azure.repository.AzureKeyVaultRepositoryProvider
    secretProviders.vault.repositories=azure
-   secretProviders.vault.repositories.azure=org.wso2.carbon.securevault.azure.AzureKeyVaultRepository
+   secretProviders.vault.repositories.azure=org.wso2.carbon.securevault.azure.repository.AzureKeyVaultRepository
    secretProviders.vault.repositories.azure.properties.keyVaultName=<name-of-the-azure-key-vault>
    secretProviders.vault.repositories.azure.properties.credential=<choice-of-authentication-credential>
    secretProviders.vault.repositories.azure.properties.managedIdentityClientId=<client-id-of-user-assigned-managed-identity>
@@ -182,7 +182,7 @@ Note that, by default, both the private key and keystore passwords are assumed t
 
 1. Create a secret and store your password(s) in your Key Vault.
 2. Edit the configurations in the `secret-conf.properties` file mentioned in [Step 2: Enabling Carbon Secure Vault](#step-2-enabling-carbon-secure-vault) as follows.
-    1. Replace the values for the two properties `keystore.identity.store.secretProvider` and `keystore.identity.key.secretProvider` with `org.wso2.carbon.securevault.azure.AzureKeyVaultSecretCallbackHandler`. This is the fully qualified class path of the Azure Key Vault Secret Callback Handler, which we will be using instead of the Default Secret Callback Handler.
+    1. Replace the values for the two properties `keystore.identity.store.secretProvider` and `keystore.identity.key.secretProvider` with `org.wso2.carbon.securevault.azure.handler.AzureKeyVaultSecretCallbackHandler`. This is the fully qualified class path of the Azure Key Vault Secret Callback Handler, which we will be using instead of the Default Secret Callback Handler.
     2. Provide the alias and version of your password(s) in the format `alias_version` as below. If only the alias is given, the latest version of the secret will be retrieved.
          ```
          keystore.identity.store.alias=<alias-and-version-of-password>
@@ -196,9 +196,9 @@ keystore.identity.location=repository/resources/security/wso2carbon.jks
 keystore.identity.type=JKS
 keystore.identity.store.password=identity.store.password
 keystore.identity.store.alias=<alias-and-version-of-password>
-keystore.identity.store.secretProvider=org.wso2.carbon.securevault.azure.AzureKeyVaultSecretCallbackHandler
+keystore.identity.store.secretProvider=org.wso2.carbon.securevault.azure.handler.AzureKeyVaultSecretCallbackHandler
 keystore.identity.key.password=identity.key.password
-keystore.identity.key.secretProvider=org.wso2.carbon.securevault.azure.AzureKeyVaultSecretCallbackHandler
+keystore.identity.key.secretProvider=org.wso2.carbon.securevault.azure.handler.AzureKeyVaultSecretCallbackHandler
 keystore.identity.key.alias=<alias-and-version-of-password>
 carbon.secretProvider=org.wso2.securevault.secret.handler.SecretManagerSecretCallbackHandler
 secVault.enabled=true
