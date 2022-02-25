@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.securevault.azure;
+package org.wso2.carbon.securevault.azure.repository;
 
 import com.azure.core.credential.TokenCredential;
+import com.azure.core.exception.ResourceNotFoundException;
 import com.azure.identity.AzureCliCredentialBuilder;
 import com.azure.identity.CredentialUnavailableException;
 import com.azure.identity.DefaultAzureCredentialBuilder;
@@ -28,16 +29,17 @@ import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.securevault.azure.exception.AzureKeyVaultException;
 import org.wso2.securevault.secret.SecretRepository;
 
-import java.lang.reflect.Array;
-import java.net.UnknownHostException;
+import java.util.Locale;
 import java.util.Properties;
 
-import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.DOT;
-import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.IDENTITY;
-import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.KEY;
-import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.STORE;
+import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.DOT;
+import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.IDENTITY;
+import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.KEY;
+import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.REGEX;
+import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.STORE;
 
 /**
  * Extension to facilitate the use of an Azure Key Vault as an external secret repository.
@@ -48,6 +50,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
     private static final String CHAIN_CREDENTIAL = "chain";
     private static final String CLI_CREDENTIAL = "cli";
     private static final String CREDENTIAL = "CREDENTIAL";
+    private static final String DELIMITER = "_";
     private static final String ENV_CREDENTIAL = "env";
     private static final String MI_CLIENT_ID = "MI_CLIENT_ID";
     private static final String MI_CREDENTIAL = "mi";
@@ -59,7 +62,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
     private static final String PROPERTIES = "properties";
     private static final String REPOSITORIES = "repositories";
     private static final String SECRET_CALLBACK_HANDLER =
-            "org.wso2.carbon.securevault.azure.AzureKeyVaultSecretCallbackHandler";
+            "org.wso2.carbon.securevault.azure.handler.AzureKeyVaultSecretCallbackHandler";
     private static final String SECRET_PROVIDER = "secretProvider";
     private static final String SECRET_PROVIDERS = "secretProviders";
     private static final String SECRET_REPOSITORIES = "secretRepositories";
@@ -80,11 +83,19 @@ public class AzureKeyVaultRepository implements SecretRepository {
     @Override
     public void init(Properties properties, String id) {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Initializing Azure Key Vault connection.");
+        }
+
         String keyStore = properties.getProperty(KEY + STORE + DOT + IDENTITY + DOT + STORE + DOT + SECRET_PROVIDER);
         String primaryKey = properties.getProperty(KEY + STORE + DOT + IDENTITY + DOT + KEY + DOT + SECRET_PROVIDER);
 
         if (!(keyStore.equals(SECRET_CALLBACK_HANDLER) && primaryKey.equals(SECRET_CALLBACK_HANDLER))) {
-            authenticateToKeyVault(properties);
+            try {
+                buildSecretClient(properties);
+            } catch (AzureKeyVaultException e) {
+                log.error("Building secret client failed.", e);
+            }
         }
     }
 
@@ -106,7 +117,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
                 String[] aliasComponents = parseSecretReference(alias);
                 KeyVaultSecret retrievedSecret = secretClient.getSecret(aliasComponents[0], aliasComponents[1]);
                 secret = retrievedSecret.getValue();
-            } catch (Exception e) {
+            } catch (ResourceNotFoundException e) {
                 log.error("Error occurred during secret retrieval. Check vault and/or secret configuration.", e);
             }
         }
@@ -160,10 +171,10 @@ public class AzureKeyVaultRepository implements SecretRepository {
 
         String[] aliasComponents = {alias, null};
 
-        if (alias.contains("_")) {
-            if (StringUtils.countMatches(alias, "_") == 1) {
+        if (alias.contains(DELIMITER)) {
+            if (StringUtils.countMatches(alias, DELIMITER) == 1) {
 
-                aliasComponents = alias.split("_");
+                aliasComponents = alias.split(DELIMITER);
 
                 if (log.isDebugEnabled()) {
                     if (StringUtils.isNotEmpty(aliasComponents[1])) {
@@ -187,111 +198,59 @@ public class AzureKeyVaultRepository implements SecretRepository {
     }
 
     /**
-     * Authenticates to the Key Vault using the user's preferred credential.
+     * Builds a secret client to be used in secret retrieval using the Key Vault Url
+     * and the user's preferred credential.
      *
      * @param properties Configuration properties from file.
      */
-    public static void authenticateToKeyVault(Properties properties) {
+    public static void buildSecretClient(Properties properties) throws AzureKeyVaultException {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Initializing Azure Key Vault connection.");
-        }
-
-        try {
-            readConfigProperties(properties);
-        } catch (UnknownHostException e) {
-            log.error("Error in Key Vault configuration.", e);
-        }
-
-        try {
-            secretClient = new SecretClientBuilder()
-                    .vaultUrl(HTTPS_COLON_DOUBLE_SLASH + keyVaultName + DOT + VAULT + DOT + AZURE + DOT + NET)
-                    .credential(createChosenCredential(credential))
-                    .buildClient();
-        } catch (CredentialUnavailableException e) {
-            log.error("Building secret client failed.", e);
-        }
+        readConfigProperties(properties);
+        secretClient = new SecretClientBuilder()
+                .vaultUrl(HTTPS_COLON_DOUBLE_SLASH + keyVaultName + DOT + VAULT + DOT + AZURE + DOT + NET)
+                .credential(createChosenCredential(credential))
+                .buildClient();
     }
 
     /**
      * Reads Carbon Secure Vault configuration properties.
      *
      * @param properties Configuration properties from file.
-     * @throws UnknownHostException if the Key Vault name has not been provided.
+     * @throws AzureKeyVaultException if the Key Vault name has not been provided.
      */
-    private static void readConfigProperties(Properties properties) throws UnknownHostException {
+    private static void readConfigProperties(Properties properties) throws AzureKeyVaultException {
 
         String legacyProvidersString = properties.getProperty(SECRET_REPOSITORIES, null);
-        boolean novelFlag;
+        String propertyPrefix;
 
         if (StringUtils.isEmpty(legacyProvidersString)) {
             if (log.isDebugEnabled()) {
                 log.debug("Legacy provider not found. Using novel configurations.");
             }
-            novelFlag = true;
+            propertyPrefix = SECRET_PROVIDERS + DOT + VAULT + DOT + REPOSITORIES + DOT +
+                    AZURE + DOT + PROPERTIES + DOT;
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Legacy provider found. Using legacy configurations.");
             }
-            novelFlag = false;
+            propertyPrefix = SECRET_REPOSITORIES + DOT + VAULT + DOT + PROPERTIES + DOT;
         }
 
-        String legacyPropertyPrefix = SECRET_REPOSITORIES + DOT + VAULT + DOT + PROPERTIES + DOT;
-        String novelPropertyPrefix = SECRET_PROVIDERS + DOT + VAULT + DOT + REPOSITORIES + DOT +
-                AZURE + DOT + PROPERTIES + DOT;
+        keyVaultName = properties.getProperty(propertyPrefix + KEY_VAULT_NAME);
+        keyVaultName = getConfig(keyVaultName, KV_NAME, "Key Vault name");
 
-        String propertyCredential = novelFlag ? (novelPropertyPrefix + CREDENTIAL.toLowerCase()) :
-                (legacyPropertyPrefix + CREDENTIAL.toLowerCase());
-        String propertyKeyVaultName = novelFlag ? (novelPropertyPrefix + KEY_VAULT_NAME) :
-                (legacyPropertyPrefix + KEY_VAULT_NAME);
-        String propertyManagedIdentityClientID = novelFlag ? (novelPropertyPrefix + MANAGED_IDENTITY_CLIENT_ID) :
-                (legacyPropertyPrefix + MANAGED_IDENTITY_CLIENT_ID);
-
-        keyVaultName = properties.getProperty(propertyKeyVaultName);
-        managedIdentityClientId = properties.getProperty(propertyManagedIdentityClientID);
-        credential = properties.getProperty(propertyCredential);
-
-        readEnvProperties();
-
-        if (StringUtils.isEmpty(keyVaultName)) {
-            throw new UnknownHostException("Key Vault name not provided.");
-        }
-    }
-
-    /**
-     * Reads Carbon Secure Vault configuration properties from environment variables.
-     */
-    private static void readEnvProperties() {
-
-        String [] credentialLogs = new String[4];
-        credentialLogs [0] = "Credential choice not found in configuration file. Checking environment variables.";
-        credentialLogs [1] = "Credential choice not found as an environment variables. Value cannot be null." +
-                "Configure credential choice in configuration file or as an environment variable.";
-        credentialLogs [2] = "Credential choice found as an environment variable. Value set to this.";
-        credentialLogs [3] = "Credential choice found in configuration file. Value set to this.";
-        credential = getConfig(credential, CREDENTIAL, credentialLogs);
-
-        String [] keyVaultNameLogs = new String[4];
-        keyVaultNameLogs [0] = "Key Vault name not found in configuration file. Checking environment variables.";
-        keyVaultNameLogs [1] = "Key Vault name not found not found as an environment variable. Value cannot be null. " +
-                "Configure key vault name in configuration file or as an environment variable.";
-        keyVaultNameLogs [2] = "Key Vault name found as an environment variable. Value set to this.";
-        keyVaultNameLogs [3] = "Key Vault name found in configuration file. Value set to this.";
-        keyVaultName = getConfig(keyVaultName, KV_NAME, keyVaultNameLogs);
-
-        if (StringUtils.isNotEmpty(credential)) {
-            if (credential.equals(MI_CREDENTIAL) || credential.equals(CHAIN_CREDENTIAL)) {
-                String [] managedIdentityClientIdLogs = new String[4];
-                managedIdentityClientIdLogs [0] = "Managed identity clientId not found in configuration file. " +
-                        "Checking environment variables.";
-                managedIdentityClientIdLogs [1] = "Managed identity clientId not found in environment variables. " +
-                        "Value set to null.";
-                managedIdentityClientIdLogs [2] = "Managed identity client id found as an environment variable. " +
-                        "Value set to this.";
-                managedIdentityClientIdLogs [3] = "Managed identity clientId found in configuration file. " +
-                        "Value set to this.";
-                managedIdentityClientId = getConfig(managedIdentityClientId, MI_CLIENT_ID, managedIdentityClientIdLogs);
+        if (StringUtils.isNotEmpty(keyVaultName)) {
+            credential = properties.getProperty(propertyPrefix + CREDENTIAL.toLowerCase(Locale.ROOT));
+            credential = getConfig(credential, CREDENTIAL, "Credential choice");
+            if (StringUtils.isNotEmpty(credential)) {
+                if (credential.equals(MI_CREDENTIAL) || credential.equals(CHAIN_CREDENTIAL)) {
+                    managedIdentityClientId = properties.getProperty(propertyPrefix + MANAGED_IDENTITY_CLIENT_ID);
+                    managedIdentityClientId = getConfig(managedIdentityClientId, MI_CLIENT_ID,
+                            "Managed identity client id");
+                }
             }
+        } else {
+            throw new AzureKeyVaultException("Error in Key Vault configuration.");
         }
     }
 
@@ -300,28 +259,30 @@ public class AzureKeyVaultRepository implements SecretRepository {
      *
      * @param value Value of the configuration property.
      * @param envProperty Name of the environment variable that stores the value of the configuration property.
-     * @param logs Set of logs used when reading configuration properties.
+     * @param propertyName Name of the property being read.
      */
-    private static String getConfig(String value, String envProperty, String[] logs) {
+    private static String getConfig(String value, String envProperty, String propertyName) {
 
+        propertyName = propertyName.replaceAll(REGEX, "");
         if (StringUtils.isEmpty(value)) {
 
             if (log.isDebugEnabled()) {
-                log.debug(Array.get(logs, 0));
+                log.debug(propertyName + " not found in configuration file. Checking environment variables.");
             }
 
             value = System.getenv(envProperty);
 
             if (StringUtils.isEmpty(value)) {
-                log.error(Array.get(logs, 1));
+                log.error(propertyName + " not found as an environment variables. Value cannot be null " +
+                        "and must be provided in configuration file or as an environment variable.");
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug(Array.get(logs, 2));
+                    log.debug(propertyName + " found as an environment variable. Value set to this.");
                 }
             }
         } else {
             if (log.isDebugEnabled()) {
-                log.debug(Array.get(logs, 3));
+                log.debug(propertyName + " found in configuration file. Value set to this.");
             }
         }
 

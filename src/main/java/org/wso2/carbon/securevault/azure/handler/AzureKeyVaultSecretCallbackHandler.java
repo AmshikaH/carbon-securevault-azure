@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.securevault.azure;
+package org.wso2.carbon.securevault.azure.handler;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.securevault.azure.exception.AzureKeyVaultException;
+import org.wso2.carbon.securevault.azure.repository.AzureKeyVaultRepository;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.securevault.SecureVaultException;
 import org.wso2.securevault.secret.AbstractSecretCallbackHandler;
@@ -32,10 +34,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.DOT;
-import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.IDENTITY;
-import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.KEY;
-import static org.wso2.carbon.securevault.azure.AzureKeyVaultConstants.STORE;
+import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.DOT;
+import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.IDENTITY;
+import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.KEY;
+import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.REGEX;
+import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.STORE;
 
 /**
  * Secret Callback handler class if keystore and primary key passwords are stored in the
@@ -67,7 +70,11 @@ public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHa
                 sameKeyAndKeyStorePass = false;
             }
 
-            readPasswordFromKeyVault(sameKeyAndKeyStorePass);
+            try {
+                readPasswordFromKeyVault(sameKeyAndKeyStorePass);
+            } catch (AzureKeyVaultException e) {
+                log.error(e.getMessage().replaceAll(REGEX, ""));
+            }
             readPasswordThroughConsole(sameKeyAndKeyStorePass);
         }
 
@@ -84,7 +91,7 @@ public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHa
      * @param sameKeyAndKeyStorePass flag to indicate whether the keystore and primary key passwords are the same.
      */
     @SuppressFBWarnings("PATH_TRAVERSAL_IN")
-    private void readPasswordFromKeyVault(boolean sameKeyAndKeyStorePass) {
+    private void readPasswordFromKeyVault(boolean sameKeyAndKeyStorePass) throws AzureKeyVaultException {
 
         if (log.isDebugEnabled()) {
             log.debug("Reading Carbon Secure Vault configuration properties from file.");
@@ -108,7 +115,7 @@ public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHa
             }
         }
 
-        AzureKeyVaultRepository.authenticateToKeyVault(properties);
+        AzureKeyVaultRepository.buildSecretClient(properties);
         AzureKeyVaultRepository azureKeyVaultRepository = new AzureKeyVaultRepository();
 
         String keyStoreAlias = properties.getProperty(KEY + STORE + DOT + IDENTITY + DOT + STORE + DOT + ALIAS);
