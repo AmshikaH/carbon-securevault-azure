@@ -37,7 +37,6 @@ import java.util.Properties;
 import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.DOT;
 import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.IDENTITY;
 import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.KEY;
-import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.REGEX;
 import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.STORE;
 
 /**
@@ -73,7 +72,7 @@ public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHa
             try {
                 readPasswordFromKeyVault(sameKeyAndKeyStorePass);
             } catch (AzureKeyVaultException e) {
-                log.error(e.getMessage().replaceAll(REGEX, ""));
+                log.error("Building secret client failed.", e);
             }
             readPasswordThroughConsole(sameKeyAndKeyStorePass);
         }

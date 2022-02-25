@@ -38,7 +38,6 @@ import java.util.Properties;
 import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.DOT;
 import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.IDENTITY;
 import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.KEY;
-import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.REGEX;
 import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.STORE;
 
 /**
@@ -60,6 +59,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
     private static final String MANAGED_IDENTITY_CLIENT_ID = "managedIdentityClientId";
     private static final String NET = "net";
     private static final String PROPERTIES = "properties";
+    private static final String REGEX = "[\r\n]";
     private static final String REPOSITORIES = "repositories";
     private static final String SECRET_CALLBACK_HANDLER =
             "org.wso2.carbon.securevault.azure.handler.AzureKeyVaultSecretCallbackHandler";

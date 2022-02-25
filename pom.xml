@@ -71,6 +71,7 @@
                             reactive-streams;
                             reactor-core
                         </Embed-Dependency>
+                        <_fixupmessages>"Classes found in the wrong directory..."</_fixupmessages>
                     </instructions>
                 </configuration>
             </plugin>

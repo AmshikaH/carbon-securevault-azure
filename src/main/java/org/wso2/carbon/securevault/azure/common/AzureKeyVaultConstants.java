@@ -24,7 +24,6 @@ public class AzureKeyVaultConstants {
     public static final String DOT = ".";
     public static final String IDENTITY = "identity";
     public static final String KEY = "key";
-    public static final String REGEX = "[\r\n]";
     public static final String STORE = "store";
 
 }
