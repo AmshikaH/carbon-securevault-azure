@@ -19,7 +19,6 @@ package org.wso2.carbon.securevault.azure.repository;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.exception.ResourceNotFoundException;
 import com.azure.identity.AzureCliCredentialBuilder;
-import com.azure.identity.CredentialUnavailableException;
 import com.azure.identity.DefaultAzureCredentialBuilder;
 import com.azure.identity.EnvironmentCredentialBuilder;
 import com.azure.identity.ManagedIdentityCredentialBuilder;
@@ -75,17 +74,13 @@ public class AzureKeyVaultRepository implements SecretRepository {
     private SecretRepository parentRepository;
 
     /**
-     * Initializes the Key Vault as a Secret Repository by providing configuration properties.
+     * Initializes the Key Vault as a Secret Repository by building a secret client to be used in secret retrieval.
      *
      * @param properties Configuration properties from file.
      * @param id Identifier to identify properties related to the corresponding repository.
      */
     @Override
     public void init(Properties properties, String id) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Initializing Azure Key Vault connection.");
-        }
 
         String keyStore = properties.getProperty(KEY + STORE + DOT + IDENTITY + DOT + STORE + DOT + SECRET_PROVIDER);
         String primaryKey = properties.getProperty(KEY + STORE + DOT + IDENTITY + DOT + KEY + DOT + SECRET_PROVIDER);
@@ -165,7 +160,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
      * Parses a secret reference into the secret's name and version.
      *
      * @param alias The name and version (the latter is optional) of the secret being retrieved.
-     * @return The secret corresponding to the alias in the Key Vault.
+     * @return An array comprising the name and version of the secret.
      */
     private String[] parseSecretReference(String alias) {
 
@@ -202,10 +197,16 @@ public class AzureKeyVaultRepository implements SecretRepository {
      * and the user's preferred credential.
      *
      * @param properties Configuration properties from file.
+     * @throws AzureKeyVaultException if building a secret client fails.
      */
     public static void buildSecretClient(Properties properties) throws AzureKeyVaultException {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Initializing Azure Key Vault connection.");
+        }
+
         readConfigProperties(properties);
+
         secretClient = new SecretClientBuilder()
                 .vaultUrl(HTTPS_COLON_DOUBLE_SLASH + keyVaultName + DOT + VAULT + DOT + AZURE + DOT + NET)
                 .credential(createChosenCredential(credential))
@@ -240,8 +241,10 @@ public class AzureKeyVaultRepository implements SecretRepository {
         keyVaultName = getConfig(keyVaultName, KV_NAME, "Key Vault name");
 
         if (StringUtils.isNotEmpty(keyVaultName)) {
+
             credential = properties.getProperty(propertyPrefix + CREDENTIAL.toLowerCase(Locale.ROOT));
             credential = getConfig(credential, CREDENTIAL, "Credential choice");
+
             if (StringUtils.isNotEmpty(credential)) {
                 if (credential.equals(MI_CREDENTIAL) || credential.equals(CHAIN_CREDENTIAL)) {
                     managedIdentityClientId = properties.getProperty(propertyPrefix + MANAGED_IDENTITY_CLIENT_ID);
@@ -290,14 +293,13 @@ public class AzureKeyVaultRepository implements SecretRepository {
     }
 
     /**
-     * Creates a credential to use in authentication based on choice set by user.
+     * Creates a credential to use in authentication based on the choice set by the user.
      *
      * @param credential Credential choice given by user.
      * @return Credential to be used in authentication.
-     * @throws CredentialUnavailableException if the authentication credential choice
-     *                                        has not been provided or is invalid.
+     * @throws AzureKeyVaultException if the authentication credential choice has not been provided or is invalid.
      */
-    private static TokenCredential createChosenCredential(String credential) {
+    private static TokenCredential createChosenCredential(String credential) throws AzureKeyVaultException {
 
         TokenCredential tokenCredential;
 
@@ -326,13 +328,13 @@ public class AzureKeyVaultRepository implements SecretRepository {
                     break;
 
                 default:
-                    throw new CredentialUnavailableException("Invalid choice for Key Vault authentication credential." +
+                    throw new AzureKeyVaultException("Invalid choice for Key Vault authentication credential." +
                             " Set value to one out of 'env', 'mi', 'cli' or 'chain' to use " +
                             "Environment Credential Authentication, Managed Identity Authentication or " +
                             "Default Azure Credential Chain Authentication respectively.");
             }
         } else {
-            throw new CredentialUnavailableException("Key Vault authentication credential not configured. " +
+            throw new AzureKeyVaultException("Key Vault authentication credential not configured. " +
                     "Set configuration property or environment variable with 'env', 'mi', cli' or 'chain' to use " +
                     "Environment Credential Authentication, Managed Identity Authentication or " +
                     "'Default Azure Credential Chain Authentication respectively.");

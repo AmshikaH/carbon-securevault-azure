@@ -23,7 +23,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.securevault.azure.exception.AzureKeyVaultException;
 import org.wso2.carbon.securevault.azure.repository.AzureKeyVaultRepository;
 import org.wso2.carbon.utils.CarbonUtils;
-import org.wso2.securevault.SecureVaultException;
 import org.wso2.securevault.secret.AbstractSecretCallbackHandler;
 import org.wso2.securevault.secret.SingleSecretCallback;
 
@@ -40,7 +39,7 @@ import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.KE
 import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.STORE;
 
 /**
- * Secret Callback handler class if keystore and primary key passwords are stored in the
+ * Secret Callback handler class used if the keystore and primary key passwords are stored in the
  * Azure Key Vault that stores the deployment secrets.
  */
 public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHandler {
@@ -88,6 +87,7 @@ public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHa
      * Reads keystore and primary key passwords from Azure Key Vault.
      *
      * @param sameKeyAndKeyStorePass flag to indicate whether the keystore and primary key passwords are the same.
+     * @throws AzureKeyVaultException if building a secret client fails.
      */
     @SuppressFBWarnings("PATH_TRAVERSAL_IN")
     private void readPasswordFromKeyVault(boolean sameKeyAndKeyStorePass) throws AzureKeyVaultException {
@@ -102,8 +102,8 @@ public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHa
         try {
             inputStream = new FileInputStream(CONFIG_FILE_PATH);
             properties.load(inputStream);
-        } catch (Exception e) {
-            throw new SecureVaultException("Error while loading configurations from " + CONFIG_FILE_PATH, e);
+        } catch (IOException e) {
+            throw new AzureKeyVaultException("Error while loading configurations from " + CONFIG_FILE_PATH, e);
         } finally {
             try {
                 if (inputStream != null) {
