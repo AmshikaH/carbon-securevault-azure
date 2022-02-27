@@ -1,12 +1,12 @@
 # Carbon Secure Vault Extension for Azure Key Vault
 
-Carbon Secure Vault extension to use Azure Key Vault as an external secret repository.
+Carbon Secure Vault extension to use an Azure Key Vault as an external secret repository.
 
 ## Step 1: Building and Inserting the Azure Extension into the Identity Server
 
 1. Clone this project onto your computer or download it as a zip.
 2. Run `mvn clean install` from the carbon-securevault-azure directory to build the OSGi bundle for the extension.
-3. Copy this bundle from the target directory within the project.
+3. Copy this bundle, the `org.wso2.carbon.securevault.azure-1.0.jar` file, from the `target` directory within the project.
 4. Insert the bundle within the Identity Server by pasting it into the `dropins` directory (`<IS_HOME>/repository/components/dropins`).
 
 ## Step 2: Enabling Carbon Secure Vault
@@ -204,9 +204,15 @@ carbon.secretProvider=org.wso2.securevault.secret.handler.SecretManagerSecretCal
 secVault.enabled=true
 ```
 
+That's it! Now you're all set to use your Key Vault as a secret repository with the Identity Server's Carbon Secure Vault.
+
 ## Using an Azure Key Vault with Other Repositories
 
-The use of multiple secret repositories is only supported from WSO2 Identity Server version 5.12.0 onwards with the novel configurations mentioned in [Step 2: Enabling Carbon Secure Vault](#step-2-enabling-carbon-secure-vault) edited as follows.
+The steps given above only describe setting up an Azure Key Vault as your secret repository. However, from Identity Server version 5.12.0 onwards, the use of multiple secret repositories is supported as well. This means you can store and retrieve your Identity Server secrets from various places if you wish to, such as from an Azure Key Vault and AWS Secrets Manager.
+
+The steps to set this up are as follows.
+
+1. The novel configurations mentioned in [Step 2: Enabling Carbon Secure Vault](#step-2-enabling-carbon-secure-vault) need to be edited as given below with the relevant values being added as stated.
 
    ```
    secretProviders=vault
@@ -219,6 +225,8 @@ The use of multiple secret repositories is only supported from WSO2 Identity Ser
    secretProviders.vault.repositories.<other-repository-type>=<fully-qualified-classpath-of-the-other-repository>
    secretProviders.vault.repositories.<other-repository-type>.properties.<property-name>=<property-value>
    ```
+
+2. In the `deployment.toml` file (`<IS_HOME>/repository/conf/deployment.toml`) mentioned in [Step 3: Referencing Deployment Secrets](#step-3-referencing-deployment-secrets), the secret references should be in the format `$secret{provider:repository:alias}` or `$secret{provider:repository:alias_version}`. For example, your Key Vault secret references would be `$secret{vault:azure:superAdminPassword}`, while your other repository references would be `$secret{vault:<other-repository-type>:superAdminPassword}`.
 
 ## Debugging
 
