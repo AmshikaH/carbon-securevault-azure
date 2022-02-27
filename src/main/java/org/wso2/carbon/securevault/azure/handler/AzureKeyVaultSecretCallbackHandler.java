@@ -33,11 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.DOT;
-import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.IDENTITY;
-import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.KEY;
-import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.STORE;
-
 /**
  * Secret Callback handler class used if the keystore and primary key passwords are stored in the
  * Azure Key Vault that stores the deployment secrets.
@@ -47,6 +42,10 @@ public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHa
     private static final String ALIAS = "alias";
     private static final String CONFIG_FILE_PATH = CarbonUtils.getCarbonConfigDirPath() + File.separator +
             "security" + File.separator + "secret-conf.properties";
+    private static final String DOT = ".";
+    private static final String IDENTITY = "identity";
+    private static final String KEY = "key";
+    private static final String STORE = "store";
     private static final String PASSWORD = "password";
     private static final Log log = LogFactory.getLog(AzureKeyVaultSecretCallbackHandler.class);
     private static String keyStorePassword;

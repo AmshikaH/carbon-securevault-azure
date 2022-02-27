@@ -34,11 +34,6 @@ import org.wso2.securevault.secret.SecretRepository;
 import java.util.Locale;
 import java.util.Properties;
 
-import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.DOT;
-import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.IDENTITY;
-import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.KEY;
-import static org.wso2.carbon.securevault.azure.common.AzureKeyVaultConstants.STORE;
-
 /**
  * Extension to facilitate the use of an Azure Key Vault as an external secret repository.
  */
@@ -49,6 +44,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
     private static final String CLI_CREDENTIAL = "cli";
     private static final String CREDENTIAL = "CREDENTIAL";
     private static final String DELIMITER = "_";
+    private static final String DOT = ".";
     private static final String ENV_CREDENTIAL = "env";
     private static final String MI_CLIENT_ID = "MI_CLIENT_ID";
     private static final String MI_CREDENTIAL = "mi";
@@ -82,10 +78,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
     @Override
     public void init(Properties properties, String id) {
 
-        String keyStore = properties.getProperty(KEY + STORE + DOT + IDENTITY + DOT + STORE + DOT + SECRET_PROVIDER);
-        String primaryKey = properties.getProperty(KEY + STORE + DOT + IDENTITY + DOT + KEY + DOT + SECRET_PROVIDER);
-
-        if (!(keyStore.equals(SECRET_CALLBACK_HANDLER) && primaryKey.equals(SECRET_CALLBACK_HANDLER))) {
+        if (secretClient == null) {
             try {
                 buildSecretClient(properties);
             } catch (AzureKeyVaultException e) {

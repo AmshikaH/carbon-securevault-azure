@@ -44,7 +44,7 @@ Then, add the next set of configurations as given below depending on whether you
 
    ```
    secretProviders=vault
-   secretProviders.vault.provider=org.wso2.carbon.securevault.azure.repository.AzureKeyVaultRepositoryProvider
+   secretProviders.vault.provider=org.wso2.securevault.secret.repository.VaultSecretRepositoryProvider
    secretProviders.vault.repositories=azure
    secretProviders.vault.repositories.azure=org.wso2.carbon.securevault.azure.repository.AzureKeyVaultRepository
    secretProviders.vault.repositories.azure.properties.keyVaultName=<name-of-the-azure-key-vault>
