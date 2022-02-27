@@ -203,6 +203,23 @@ keystore.identity.key.alias=<alias-and-version-of-password>
 carbon.secretProvider=org.wso2.securevault.secret.handler.SecretManagerSecretCallbackHandler
 secVault.enabled=true
 ```
+
+## Using an Azure Key Vault with Other Repositories
+
+The use of multiple secret repositories is only supported from WSO2 Identity Server version 5.12.0 onwards with the novel configurations mentioned in [Step 2: Enabling Carbon Secure Vault](#step-2-enabling-carbon-secure-vault) edited as follows.
+
+   ```
+   secretProviders=vault
+   secretProviders.vault.provider=org.wso2.securevault.secret.repository.VaultSecretRepositoryProvider
+   secretProviders.vault.repositories=azure,<other-repository-type>
+   secretProviders.vault.repositories.azure=org.wso2.carbon.securevault.azure.repository.AzureKeyVaultRepository
+   secretProviders.vault.repositories.azure.properties.keyVaultName=<name-of-the-azure-key-vault>
+   secretProviders.vault.repositories.azure.properties.credential=<choice-of-authentication-credential>
+   secretProviders.vault.repositories.azure.properties.managedIdentityClientId=<client-id-of-user-assigned-managed-identity>
+   secretProviders.vault.repositories.<other-repository-type>=<fully-qualified-classpath-of-the-other-repository>
+   secretProviders.vault.repositories.<other-repository-type>.properties.<property-name>=<property-value>
+   ```
+
 ## Debugging
 
 1. For debug logs, add the following lines to the `log4j2.properties` file (`<IS_HOME>\repository\conf\log4j2.properties`).
