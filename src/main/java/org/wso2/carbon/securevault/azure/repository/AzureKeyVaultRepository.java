@@ -82,7 +82,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
             try {
                 buildSecretClient(properties);
             } catch (AzureKeyVaultException e) {
-                log.error("Building secret client failed.", e);
+                log.error("Building secret client failed: ", e);
             }
         }
     }
@@ -105,8 +105,8 @@ public class AzureKeyVaultRepository implements SecretRepository {
                 String[] aliasComponents = parseSecretReference(alias);
                 KeyVaultSecret retrievedSecret = secretClient.getSecret(aliasComponents[0], aliasComponents[1]);
                 secret = retrievedSecret.getValue();
-            } catch (ResourceNotFoundException e) {
-                log.error("Error occurred during secret retrieval. Check vault and/or secret configuration.", e);
+            } catch (AzureKeyVaultException | ResourceNotFoundException e) {
+                log.error("Error occurred during secret retrieval. Check vault and/or secret configuration: ", e);
             }
         }
 
@@ -155,7 +155,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
      * @param alias The name and version (the latter is optional) of the secret being retrieved.
      * @return An array comprising the name and version of the secret.
      */
-    private String[] parseSecretReference(String alias) {
+    private String[] parseSecretReference(String alias) throws AzureKeyVaultException {
 
         String[] aliasComponents = {alias, null};
 
@@ -163,6 +163,18 @@ public class AzureKeyVaultRepository implements SecretRepository {
             if (StringUtils.countMatches(alias, DELIMITER) == 1) {
 
                 aliasComponents = alias.split(DELIMITER);
+
+                if (aliasComponents.length != 2) {
+                    if (aliasComponents.length == 0) {
+                        throw new AzureKeyVaultException("Secret name cannot be empty.");
+                    } else {
+                        aliasComponents = new String[]{aliasComponents[0], null};
+                    }
+                } else {
+                    if (StringUtils.isEmpty(aliasComponents[0])) {
+                        throw new AzureKeyVaultException("Secret name cannot be empty.");
+                    }
+                }
 
                 if (log.isDebugEnabled()) {
                     if (StringUtils.isNotEmpty(aliasComponents[1])) {
@@ -172,7 +184,7 @@ public class AzureKeyVaultRepository implements SecretRepository {
                     }
                 }
             } else {
-                throw new IllegalArgumentException("Syntax error in secret reference. Secret reference " +
+                throw new AzureKeyVaultException("Syntax error in secret reference. Secret reference " +
                         "should be in the format 'secretName_secretVersion'. " +
                         "Note that there should be only one underscore.");
             }

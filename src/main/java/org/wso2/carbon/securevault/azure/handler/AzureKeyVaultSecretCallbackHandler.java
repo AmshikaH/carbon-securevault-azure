@@ -70,7 +70,7 @@ public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHa
             try {
                 readPasswordFromKeyVault(sameKeyAndKeyStorePass);
             } catch (AzureKeyVaultException e) {
-                log.error("Building secret client failed.", e);
+                log.error("Building secret client failed: ", e);
             }
             readPasswordThroughConsole(sameKeyAndKeyStorePass);
         }
@@ -102,7 +102,7 @@ public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHa
             inputStream = new FileInputStream(CONFIG_FILE_PATH);
             properties.load(inputStream);
         } catch (IOException e) {
-            throw new AzureKeyVaultException("Error while loading configurations from " + CONFIG_FILE_PATH, e);
+            throw new AzureKeyVaultException("Error while loading configurations from " + CONFIG_FILE_PATH + ": ", e);
         } finally {
             try {
                 if (inputStream != null) {
