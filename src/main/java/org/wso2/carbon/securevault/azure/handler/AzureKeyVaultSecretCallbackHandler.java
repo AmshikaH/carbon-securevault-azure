@@ -102,7 +102,7 @@ public class AzureKeyVaultSecretCallbackHandler extends AbstractSecretCallbackHa
             inputStream = new FileInputStream(CONFIG_FILE_PATH);
             properties.load(inputStream);
         } catch (IOException e) {
-            throw new AzureKeyVaultException("Error while loading configurations from " + CONFIG_FILE_PATH + ": ", e);
+            log.error("Error while loading configurations from configuration file: ", e);
         } finally {
             try {
                 if (inputStream != null) {

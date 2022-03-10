@@ -56,9 +56,6 @@ public class AzureKeyVaultRepository implements SecretRepository {
     private static final String PROPERTIES = "properties";
     private static final String REGEX = "[\r\n]";
     private static final String REPOSITORIES = "repositories";
-    private static final String SECRET_CALLBACK_HANDLER =
-            "org.wso2.carbon.securevault.azure.handler.AzureKeyVaultSecretCallbackHandler";
-    private static final String SECRET_PROVIDER = "secretProvider";
     private static final String SECRET_PROVIDERS = "secretProviders";
     private static final String SECRET_REPOSITORIES = "secretRepositories";
     private static final String VAULT = "vault";
