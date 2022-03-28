@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+    *
+    * Licensed under the Apache License, Version 2.0 (the "License");
+    * you may not use this file except in compliance with the License.
+    * You may obtain a copy of the License at
+    *
+    *     http://www.apache.org/licenses/LICENSE-2.0
+    *
+    * Unless required by applicable law or agreed to in writing, software
+    * distributed under the License is distributed on an "AS IS" BASIS,
+    * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    * See the License for the specific language governing permissions and
+    * limitations under the License.
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.wso2.carbon</groupId>
+    <artifactId>org.wso2.carbon.securevault.azure</artifactId>
+    <version>1.0</version>
+
+    <parent>
+        <groupId>org.wso2</groupId>
+        <artifactId>wso2</artifactId>
+        <version>5.1</version>
+    </parent>
+
+    <packaging>bundle</packaging>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>${maven.bundle.plugin.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                        <Export-Package>
+                            org.wso2.carbon.securevault.azure.handler;version="${project.version}",
+                            org.wso2.carbon.securevault.azure.repository;version="${project.version}"
+                        </Export-Package>
+                        <DynamicImport-Package>*</DynamicImport-Package>
+                        <Import-Package>
+                            org.apache.commons.lang;version="${org.apache.commons.lang.import.version.range}",
+                            org.apache.commons.logging;version="${org.apache.commons.logging.import.version.range}",
+                            org.wso2.carbon.utils;version="${carbon.kernel.import.version.range}",
+                            org.wso2.securevault.keystore;version="${org.wso2.securevault.import.version.range}",
+                            org.wso2.securevault.secret;version="${org.wso2.securevault.import.version.range}"
+                        </Import-Package>
+                        <Embed-Dependency>
+                            azure-core;
+                            azure-core-http-okhttp;
+                            azure-identity;
+                            azure-security-keyvault-secrets;
+                            content-type;
+                            jackson-dataformat-xml;
+                            jackson-datatype-jsr310;
+                            kotlin-stdlib;
+                            msal4j;
+                            oauth2-oidc-sdk;
+                            okhttp;
+                            okio;
+                            reactive-streams;
+                            reactor-core
+                        </Embed-Dependency>
+                        <_fixupmessages>"Classes found in the wrong directory..."</_fixupmessages>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-core</artifactId>
+            <version>${com.azure.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-core-http-okhttp</artifactId>
+            <version>${com.azure.core.http.okhttp.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-identity</artifactId>
+            <version>${com.azure.identity.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.azure</groupId>
+                    <artifactId>azure-core-http-netty</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-security-keyvault-secrets</artifactId>
+            <version>${com.azure.security.keyvault.secrets.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.azure</groupId>
+                    <artifactId>azure-core-http-netty</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>content-type</artifactId>
+            <version>${com.nimbusds.content.type.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-xml</artifactId>
+            <version>${com.fasterxml.jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>${com.fasterxml.jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib</artifactId>
+            <version>${org.jetbrains.kotlin.stdlib.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>msal4j</artifactId>
+            <version>${com.microsoft.azure.msal4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>oauth2-oidc-sdk</artifactId>
+            <version>${com.nimbusds.oauth2-oidc-sdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>${com.squareup.okhttp3.okhttp.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okio</groupId>
+            <artifactId>okio</artifactId>
+            <version>${com.squareup.okio.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jetbrains.kotlin</groupId>
+                    <artifactId>kotlin-stdlib-common</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.reactivestreams</groupId>
+            <artifactId>reactive-streams</artifactId>
+            <version>${org.reactivestreams.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-core</artifactId>
+            <version>${io.projectreactor.reactor.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.securevault</groupId>
+            <artifactId>org.wso2.securevault</artifactId>
+            <version>${org.wso2.securevault.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.utils</artifactId>
+            <version>${carbon.kernel.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>annotations</artifactId>
+            <version>${findbugs.annotation.version}</version>
+        </dependency>
+    </dependencies>
+
+    <properties>
+        <carbon.kernel.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.import.version.range>
+        <org.apache.commons.lang.import.version.range>[2.6.0,3.0.0)</org.apache.commons.lang.import.version.range>
+        <org.apache.commons.logging.import.version.range>[1.2.0,2.0.0)</org.apache.commons.logging.import.version.range>
+        <org.wso2.securevault.import.version.range>[1.1.0, 2.0.0)</org.wso2.securevault.import.version.range>
+
+        <carbon.kernel.version>4.6.2</carbon.kernel.version>
+        <com.azure.core.version>1.20.0</com.azure.core.version>
+        <com.azure.core.http.okhttp.version>1.7.5</com.azure.core.http.okhttp.version>
+        <com.azure.identity.version>1.3.6</com.azure.identity.version>
+        <com.azure.security.keyvault.secrets.version>4.3.4</com.azure.security.keyvault.secrets.version>
+        <com.fasterxml.jackson.version>2.10.5</com.fasterxml.jackson.version>
+        <com.github.spotbugs.annotations>4.5.3</com.github.spotbugs.annotations>
+        <com.microsoft.azure.msal4j.version>1.11.0</com.microsoft.azure.msal4j.version>
+        <com.nimbusds.content.type.version>2.1</com.nimbusds.content.type.version>
+        <com.nimbusds.oauth2-oidc-sdk.version>9.7</com.nimbusds.oauth2-oidc-sdk.version>
+        <com.squareup.okhttp3.okhttp.version>4.8.1</com.squareup.okhttp3.okhttp.version>
+        <com.squareup.okio.version>2.7.0</com.squareup.okio.version>
+        <io.projectreactor.reactor.core.version>3.4.9</io.projectreactor.reactor.core.version>
+        <org.jetbrains.kotlin.stdlib.version>1.6.0</org.jetbrains.kotlin.stdlib.version>
+        <org.reactivestreams.version>1.0.3</org.reactivestreams.version>
+        <org.wso2.securevault.version>1.1.4</org.wso2.securevault.version>
+
+        <maven.findbugsplugin.version>3.0.5</maven.findbugsplugin.version>
+        <findsecbugs.plugin.version>1.10.1</findsecbugs.plugin.version>
+        <maven.bundle.plugin.version>5.1.4</maven.bundle.plugin.version>
+        <maven.checkstyle.plugin.version>2.17</maven.checkstyle.plugin.version>
+        <findbugs.annotation.version>3.0.1</findbugs.annotation.version>
+        <commons_io.version>2.7</commons_io.version>
+
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+</project>
