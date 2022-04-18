@@ -2,30 +2,28 @@
 
 Carbon Secure Vault extension to use an Azure Key Vault as an external secret repository.
 
-## Step 1: Building and Inserting the Azure Extension and its Dependencies into the Identity Server
-
-### Adding the Extension
+## Step 1: Building and Inserting the Azure Extension into the Identity Server
 
 1. Clone this project onto your computer or download it as a zip and unzip it.
 2. Run `mvn clean install` from the `carbon-securevault-azure` directory to build the OSGi bundle for the extension.
 3. Copy this bundle, the `org.wso2.carbon.securevault.azure-1.0.jar` file, from the `target` directory within the project.
 4. Insert the bundle within the Identity Server by pasting it into the `dropins` directory (`<IS_HOME>/repository/components/dropins`).
 
-### Adding the Dependencies
+## Step 2: Downloading and Inserting the Required Dependencies into the Identity Server
 
-Linux:
+**Linux:**
 1. Navigate to the `scripts` directory in a terminal window.
 2. Run `bash get-dependencies.sh` to download the dependency jar files.
 3. Copy all the jar files in the `scripts/dependencies` directory within the project.
 4. Insert these dependencies within the Identity Server by pasting them into the `lib` directory (`<IS_HOME>/repository/components/dropins`).
 
-Windows:
+**Windows:**
 1. Navigate to the `scripts` directory.
 2. Double-click on the `get-dependencies.bat` file to run the script and download the dependency jar files.
 3. Copy all the jar files in the `scripts/dependencies` directory within the project.
 4. Insert these dependencies within the Identity Server by pasting them into the `lib` directory (`<IS_HOME>/repository/components/dropins`).
 
-## Step 2: Enabling Carbon Secure Vault
+## Step 3: Enabling Carbon Secure Vault
 
 There are 2 ways of configuring the secret repository. Namely, the legacy and novel configuration.
 
@@ -75,7 +73,7 @@ The novel configuration was introduced in Identity Server 5.12.0 and the legacy 
 
 **Note that in all 3 cases above, if the value has been set both in the configuration file and as an environment variable, the value set in the configuration file is given priority and will be the one that is used.**
 
-## Step 3: Referencing Deployment Secrets
+## Step 4: Referencing Deployment Secrets
 
 1. In the `deployment.toml` file (`<IS_HOME>/repository/conf/deployment.toml`), replace each value to be stored as a secret with a reference.
 
@@ -127,7 +125,7 @@ The novel configuration was introduced in Identity Server 5.12.0 and the legacy 
      ```
 
 
-## Step 4: Setting Up Authentication to Azure Key Vault
+## Step 5: Setting Up Authentication to Azure Key Vault
 
 You have 4 choices for the authentication credential you may use and it is necessary to specify your choice either as a configuration property or an environment variable.
 
@@ -164,7 +162,7 @@ If you are using the legacy configuration, you are required to proceed to [Step 
 
 However, if you are using the novel configurations, the next step isn't necessary and you're all set to use your Key Vault with the Identity Server's Carbon Secure Vault. Additionally, if you're interested in using your Key Vault with other secret repositories or need to troubleshoot any issues by debugging, see the sections on [Using an Azure Key Vault with Other Secret Repositories](using-an-azure-key-vault-with-other-secret-repositories) and [Debugging](debugging) respectively.
 
-## Step 5: Carbon Secure Vault Root Password [For Legacy Configuration Only]
+## Step 6: Carbon Secure Vault Root Password [For Legacy Configuration Only]
 When you start the server, you will be required to provide the keystore and private key password, which is `wso2carbon` by default.
 
 You may do this in one of the following ways.
@@ -271,4 +269,3 @@ The steps to set this up are as follows.
    ```
    loggers = AUDIT_LOG, trace-messages, ..., org-wso2-carbon-securevault-azure
    ```
->>>>>>> Stashed changes
