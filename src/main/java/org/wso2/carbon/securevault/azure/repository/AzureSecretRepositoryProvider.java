@@ -29,12 +29,13 @@ public class AzureSecretRepositoryProvider implements SecretRepositoryProvider {
     /**
      * Initializes the Azure Secret Repository.
      *
-     * @param identity Identity Keystore
-     * @param trust Trust Keystore
+     * @param identityKeyStoreWrapper Identity Keystore
+     * @param trustKeyStoreWrapper Trust Keystore
      * @return A SecretRepository implementation.
      */
     @Override
-    public SecretRepository getSecretRepository(IdentityKeyStoreWrapper identity, TrustKeyStoreWrapper trust) {
-        return new AzureSecretRepository(identity, trust);
+    public SecretRepository getSecretRepository(IdentityKeyStoreWrapper identityKeyStoreWrapper,
+                                                TrustKeyStoreWrapper trustKeyStoreWrapper) {
+        return new AzureSecretRepository(identityKeyStoreWrapper, trustKeyStoreWrapper);
     }
 }

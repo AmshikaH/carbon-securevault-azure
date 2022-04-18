@@ -36,21 +36,25 @@ import static org.wso2.carbon.securevault.azure.commons.Constants.REGEX;
 import static org.wso2.carbon.securevault.azure.commons.Constants.SECRET_REPOSITORIES;
 
 /**
- * Config Utils class to read the secret-conf.properties config file,
+ * Config Utils class to read the secret-conf.properties file,
  * its properties and environment variables containing configurations.
  */
 public class ConfigUtils {
 
     private static final String SECURITY = "security";
-    private static final String ENV_PREFIX = "AKV" + DELIMITER;
+    private static final String ENV_PREFIX = "AKV";
     private static final String CONFIG_FILE_PATH = CarbonUtils.getCarbonConfigDirPath() +
             File.separator + SECURITY + File.separator + CONFIG_FILE;
     private static final Log log = LogFactory.getLog(ConfigUtils.class);
     private static Properties properties;
     private static String propertyPrefix;
-
     private static ConfigUtils instance;
 
+    /**
+     * Gets the instance of the ConfigUtils class.
+     *
+     * @return Instance of ConfigUtils.
+     */
     public static synchronized ConfigUtils getInstance() {
 
         if (instance == null) {
@@ -60,29 +64,19 @@ public class ConfigUtils {
     }
 
     /**
-     * Reads configuration properties from the config file.
+     * Reads configuration properties from the secret-conf.properties file.
      *
-     * @return Configuration properties from file.
+     * @return Configuration properties from the secret-conf.properties file.
      */
     @SuppressFBWarnings("PATH_TRAVERSAL_IN")
     public static synchronized Properties getConfigProperties() {
 
         if (properties == null) {
-            InputStream inputStream = null;
             properties = new Properties();
-            try {
-                inputStream = new FileInputStream(CONFIG_FILE_PATH);
+            try (InputStream inputStream = new FileInputStream(CONFIG_FILE_PATH)) {
                 properties.load(inputStream);
             } catch (IOException e) {
                 log.error("Error while loading configurations from configuration file'" + CONFIG_FILE + "'.", e);
-            } finally {
-                try {
-                    if (inputStream != null) {
-                        inputStream.close();
-                    }
-                } catch (IOException e) {
-                    log.warn("Error closing input stream of configuration file.");
-                }
             }
         }
 
@@ -90,16 +84,16 @@ public class ConfigUtils {
     }
 
     /**
-     * Reads configuration from the "secret-conf.properties" config file. If a value is not found in the file,
-     * reads from environment variables. If the configuration has not been specified in either of the locations,
-     * the default value is used.
+     * Reads a configuration property; first, the value is looked for in the secret-config.properties file.
+     * If a value is not found in the file, the value is looked for among the environment variables. If a value
+     * is not found here either, the default value is set.
      *
-     * @param properties Configuration properties from file.
+     * @param properties Configuration properties from the secret-conf.properties file.
      * @param configName The name of the configuration property.
      * @param defaultValue The default value of the configuration property.
      * @return The value of the configuration property.
      */
-    public String getConfig(Properties properties, String configName, String defaultValue) { //TODO
+    public String getConfig(Properties properties, String configName, String defaultValue) {
 
         String configValue = properties.getProperty(readConfigPrefixType(properties) + configName);
 
@@ -108,7 +102,7 @@ public class ConfigUtils {
                 log.debug("Using " + configName.replaceAll(REGEX, "") + " found in config file.");
             }
         } else {
-            configValue = getEnvOrDefaultConfig(configValue, configName, defaultValue);
+            configValue = getEnvOrDefaultConfig(configName, defaultValue);
         }
 
         if (StringUtils.isNotEmpty(configValue)) {
@@ -118,31 +112,38 @@ public class ConfigUtils {
         return configValue;
     }
 
-    private String getEnvOrDefaultConfig(String value, String configName, String defaultValue) {
+    /**
+     * Reads a configuration property from the environment variables. If a value is not found,
+     * the default value is set.
+     *
+     * @param configName The name of the configuration property.
+     * @param defaultValue The default value of the configuration property.
+     * @return The value of the configuration property.
+     */
+    private String getEnvOrDefaultConfig(String configName, String defaultValue) {
 
-        if (StringUtils.isEmpty(value)) {
-            value = System.getenv(ENV_PREFIX + configName);
-            if (StringUtils.isNotEmpty(value)) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Using " + configName.replaceAll(REGEX, "") + " found as an environment variable.");
-                }
-            } else {
-                value = defaultValue;
-                if (log.isDebugEnabled()) {
-                    log.debug(configName.replaceAll(REGEX, "") + " not configured. Using default value: " +
-                            value.replaceAll(REGEX, "") + ".");
-                }
+        String configValue = System.getenv(ENV_PREFIX + DELIMITER + configName);
+        if (StringUtils.isNotEmpty(configValue)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Using " + configName.replaceAll(REGEX, "") + " found as an environment variable.");
+            }
+        } else {
+            configValue = defaultValue;
+            if (log.isDebugEnabled()) {
+                log.debug(configName.replaceAll(REGEX, "") + " not configured. Using default value: " +
+                        configValue.replaceAll(REGEX, "") + ".");
             }
         }
 
-        return value;
+        return configValue;
     }
+
     /**
      *
      * Reads whether the configuration used is the legacy or novel one and sets the prefix accordingly.
      *
-     * @param properties Configuration properties from file.
-     * @return The property prefix used in the config file.
+     * @param properties Configuration properties from the secret-conf.properties file.
+     * @return The property prefix used in the secret-conf.properties file.
      */
     private static String readConfigPrefixType(Properties properties) {
 

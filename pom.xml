@@ -53,22 +53,6 @@
                             org.wso2.securevault.keystore;version="${org.wso2.securevault.import.version.range}",
                             org.wso2.securevault.secret;version="${org.wso2.securevault.import.version.range}"
                         </Import-Package>
-                        <Embed-Dependency>
-                            azure-core;
-                            azure-core-http-okhttp;
-                            azure-identity;
-                            azure-security-keyvault-secrets;
-                            content-type;
-                            jackson-dataformat-xml;
-                            jackson-datatype-jsr310;
-                            kotlin-stdlib;
-                            msal4j;
-                            oauth2-oidc-sdk;
-                            okhttp;
-                            okio;
-                            reactive-streams;
-                            reactor-core
-                        </Embed-Dependency>
                         <_fixupmessages>"Classes found in the wrong directory..."</_fixupmessages>
                     </instructions>
                 </configuration>
@@ -81,6 +65,12 @@
             <groupId>com.azure</groupId>
             <artifactId>azure-core</artifactId>
             <version>${com.azure.core.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.azure</groupId>
@@ -118,11 +108,23 @@
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
             <version>${com.fasterxml.jackson.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
             <version>${com.fasterxml.jackson.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -133,6 +135,12 @@
             <groupId>com.microsoft.azure</groupId>
             <artifactId>msal4j</artifactId>
             <version>${com.microsoft.azure.msal4j.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.nimbusds</groupId>

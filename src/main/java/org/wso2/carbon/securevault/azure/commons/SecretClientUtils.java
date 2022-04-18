@@ -47,9 +47,7 @@ public class SecretClientUtils {
     private static final String CREDENTIAL_MI = "mi";
     private static final String HTTPS_COLON_DOUBLE_SLASH = "https://";
     private static final String KEY_VAULT_NAME = "keyVaultName";
-    private static final String KV_NAME = "KV_NAME";
     private static final String MANAGED_IDENTITY_CLIENT_ID = "managedIdentityClientId";
-    private static final String MI_CLIENT_ID = "MI_CLIENT_ID";
     private static final String NET = "net";
     private static final Log log = LogFactory.getLog(SecretClientUtils.class);
     private static SecretClient secretClient;
