@@ -2,18 +2,33 @@
 
 Carbon Secure Vault extension to use an Azure Key Vault as an external secret repository.
 
-## Step 1: Building and Inserting the Azure Extension into the Identity Server
+## Step 1: Building and Inserting the Azure Extension and its Dependencies into the Identity Server
+
+### Adding the Extension
 
 1. Clone this project onto your computer or download it as a zip and unzip it.
 2. Run `mvn clean install` from the `carbon-securevault-azure` directory to build the OSGi bundle for the extension.
 3. Copy this bundle, the `org.wso2.carbon.securevault.azure-1.0.jar` file, from the `target` directory within the project.
 4. Insert the bundle within the Identity Server by pasting it into the `dropins` directory (`<IS_HOME>/repository/components/dropins`).
 
+### Adding the Dependencies
+
+Linux:
+1. Navigate to the `scripts` directory in a terminal window.
+2. Run `bash get-dependencies.sh` to download the dependency jar files.
+3. Copy all the jar files in the `scripts/dependencies` directory within the project.
+4. Insert these dependencies within the Identity Server by pasting them into the `lib` directory (`<IS_HOME>/repository/components/dropins`).
+
+Windows:
+1. Navigate to the `scripts` directory.
+2. Double-click on the `get-dependencies.bat` file to run the script and download the dependency jar files.
+3. Copy all the jar files in the `scripts/dependencies` directory within the project.
+4. Insert these dependencies within the Identity Server by pasting them into the `lib` directory (`<IS_HOME>/repository/components/dropins`).
+
 ## Step 2: Enabling Carbon Secure Vault
 
 There are 2 ways of configuring the secret repository. Namely, the legacy and novel configuration.
 
-Prior to Identity Server 5.12.0, legacy configuration was the onl
 The novel configuration was introduced in Identity Server 5.12.0 and the legacy configuration was used in lower versions. While Identity Server 5.12.0 still supports the legacy configuration, the novel configuration is the recommended method for reasons mentioned under the legacy configuration below.
 
 1. Add the following lines to the `secret-conf.properties` Carbon Secure Vault configuration file (`<IS_HOME>/repository/conf/security/secret-conf.properties`) according to whether you are using the novel or legacy configuration.
