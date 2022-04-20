@@ -84,7 +84,7 @@ public class AzureSecretCallbackHandler extends AbstractSecretCallbackHandler {
      * @param sameKeyAndKeyStorePass flag to indicate whether the keystore and primary key passwords are the same.
      * @throws AzureSecretRepositoryException if building a secret client fails.
      */
-    private void readPasswordFromKeyVault(boolean sameKeyAndKeyStorePass) throws AzureSecretRepositoryException {
+    private void readPasswordFromKeyVault(boolean sameKeyAndKeyStorePass) {
 
         if (log.isDebugEnabled()) {
             log.debug("Reading Carbon Secure Vault configuration properties from file.");

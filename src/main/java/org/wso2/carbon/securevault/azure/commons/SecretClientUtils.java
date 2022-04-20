@@ -61,9 +61,8 @@ public class SecretClientUtils {
      *
      * @param properties Configuration properties from file.
      * @return the Secret Client to be used in secret retrieval.
-     * @throws AzureSecretRepositoryException If the configurations are invalid.
      */
-    public static SecretClient buildSecretClient(Properties properties) throws AzureSecretRepositoryException {
+    public static SecretClient buildSecretClient(Properties properties) {
 
         if (log.isDebugEnabled()) {
             log.debug("Initializing Azure Key Vault connection.");
@@ -83,9 +82,8 @@ public class SecretClientUtils {
      * Reads the configuration properties required to build the Secret Client.
      *
      * @param properties Configuration properties from file.
-     * @throws AzureSecretRepositoryException If the configurations are invalid.
      */
-    public static void loadConfigurations(Properties properties) throws AzureSecretRepositoryException {
+    public static void loadConfigurations(Properties properties) {
 
         if (log.isDebugEnabled()) {
             log.debug("Loading Carbon Secure Vault configurations for Azure Key Vault.");
@@ -115,9 +113,8 @@ public class SecretClientUtils {
      *
      * @param credential Credential choice given by user.
      * @return Credential to be used in authentication.
-     * @throws AzureSecretRepositoryException If the authentication credential choice is invalid.
      */
-    private static TokenCredential createChosenCredential(String credential) throws AzureSecretRepositoryException {
+    private static TokenCredential createChosenCredential(String credential) {
 
         TokenCredential tokenCredential;
 

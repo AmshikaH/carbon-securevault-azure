@@ -87,11 +87,7 @@ public class AzureSecretRepository implements SecretRepository {
 
         secretClient = SecretClientUtils.getSecretClient();
         if (secretClient == null) {
-            try {
-                secretClient = SecretClientUtils.buildSecretClient(properties);
-            } catch (AzureSecretRepositoryException e) {
-                throw new NullPointerException("Building secret client failed.");
-            }
+            secretClient = SecretClientUtils.buildSecretClient(properties);
         }
 
         if (!id.equals(HANDLER)) {
@@ -195,15 +191,9 @@ public class AzureSecretRepository implements SecretRepository {
      */
     public String retrieveSecretFromVault(String alias) {
 
-        String secret = "";
-
-        try {
-            String[]aliasComponents = parseSecretReference(alias);
-            KeyVaultSecret retrievedSecret = this.secretClient.getSecret(aliasComponents[0], aliasComponents[1]);
-            secret = retrievedSecret.getValue();
-        } catch (AzureSecretRepositoryException e) {
-            log.error("Error occurred during secret retrieval. Check vault and/or secret configuration: ", e);
-        }
+        String[] aliasComponents = parseSecretReference(alias);
+        KeyVaultSecret retrievedSecret = this.secretClient.getSecret(aliasComponents[0], aliasComponents[1]);
+        String secret = retrievedSecret.getValue();
 
         if (StringUtils.isNotEmpty(secret)) {
             if (log.isDebugEnabled()) {
@@ -211,6 +201,7 @@ public class AzureSecretRepository implements SecretRepository {
                         + "' was successfully retrieved from Azure Key Vault.");
             }
         } else {
+            secret = "";
             log.error("Retrieval of secret with reference '" + alias.replaceAll(REGEX, "")
                     + "' from Azure Key Vault failed. Value set to empty string.");
         }
@@ -224,7 +215,7 @@ public class AzureSecretRepository implements SecretRepository {
      * @param alias The name and version (the latter is optional) of the secret being retrieved.
      * @return An array comprising the name and version of the secret.
      */
-    private String[] parseSecretReference(String alias) throws AzureSecretRepositoryException {
+    private String[] parseSecretReference(String alias) {
 
         String[] aliasComponents = {alias, null};
 
