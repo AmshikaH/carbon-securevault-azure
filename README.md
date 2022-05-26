@@ -9,7 +9,21 @@ Carbon Secure Vault extension to use an Azure Key Vault as an external secret re
 3. Copy this bundle, the `org.wso2.carbon.securevault.azure-1.0.jar` file, from the `target` directory within the project.
 4. Insert the bundle within the Identity Server by pasting it into the `dropins` directory (`<IS_HOME>/repository/components/dropins`).
 
-## Step 2: Enabling Carbon Secure Vault
+## Step 2: Downloading and Inserting the Required Dependencies into the Identity Server
+
+**Linux:**
+1. Navigate to the `scripts` directory in a terminal window.
+2. Run `bash get-dependencies.sh` to download the dependency jar files.
+3. Copy all the jar files in the `scripts/dependencies` directory within the project.
+4. Insert these dependencies within the Identity Server by pasting them into the `lib` directory (`<IS_HOME>/repository/components/dropins`).
+
+**Windows:**
+1. Navigate to the `scripts` directory.
+2. Double-click on the `get-dependencies.bat` file to run the script and download the dependency jar files.
+3. Copy all the jar files in the `scripts/dependencies` directory within the project.
+4. Insert these dependencies within the Identity Server by pasting them into the `lib` directory (`<IS_HOME>/repository/components/dropins`).
+
+## Step 3: Enabling Carbon Secure Vault
 
 There are 2 ways of configuring the secret repository. Namely, the legacy and novel configuration.
 
@@ -17,49 +31,49 @@ The novel configuration was introduced in Identity Server 5.12.0 and the legacy 
 
 1. Add the following lines to the `secret-conf.properties` Carbon Secure Vault configuration file (`<IS_HOME>/repository/conf/security/secret-conf.properties`) according to whether you are using the novel or legacy configuration.
 
-   - **Novel (recommended for Identity Server 5.12.0 and above):**
+    - **Novel (recommended for Identity Server 5.12.0 and above):**
 
-     ```
-     carbon.secretProvider=org.wso2.securevault.secret.handler.SecretManagerSecretCallbackHandler
-     secVault.enabled=true
-     secretProviders=vault
-     secretProviders.vault.provider=org.wso2.securevault.secret.repository.VaultSecretRepositoryProvider
-     secretProviders.vault.repositories=azure
-     secretProviders.vault.repositories.azure=org.wso2.carbon.securevault.azure.repository.AzureKeyVaultRepository
-     secretProviders.vault.repositories.azure.properties.keyVaultName=<name-of-the-azure-key-vault>
-     secretProviders.vault.repositories.azure.properties.credential=<choice-of-authentication-credential>
-     secretProviders.vault.repositories.azure.properties.managedIdentityClientId=<client-id-of-user-assigned-managed-identity>
-     ```
-   
-   - **Legacy:**
+      ```
+      carbon.secretProvider=org.wso2.securevault.secret.handler.SecretManagerSecretCallbackHandler
+      secVault.enabled=true
+      secretProviders=vault
+      secretProviders.vault.provider=org.wso2.securevault.secret.repository.VaultSecretRepositoryProvider
+      secretProviders.vault.repositories=azure
+      secretProviders.vault.repositories.azure=org.wso2.carbon.securevault.azure.repository.AzureSecretRepository
+      secretProviders.vault.repositories.azure.properties.keyVaultName=<name-of-the-azure-key-vault>
+      secretProviders.vault.repositories.azure.properties.credential=<choice-of-authentication-credential>
+      secretProviders.vault.repositories.azure.properties.managedIdentityClientId=<client-id-of-user-assigned-managed-identity>
+      ```
 
-     ```
-     keystore.identity.location=repository/resources/security/wso2carbon.jks
-     keystore.identity.type=JKS
-     keystore.identity.store.password=identity.store.password
-     keystore.identity.store.secretProvider=org.wso2.carbon.securevault.DefaultSecretCallbackHandler
-     keystore.identity.key.password=identity.key.password
-     keystore.identity.key.secretProvider=org.wso2.carbon.securevault.DefaultSecretCallbackHandler
-     carbon.secretProvider=org.wso2.securevault.secret.handler.SecretManagerSecretCallbackHandler
-     secVault.enabled=true
-     secretRepositories=vault
-     secretRepositories.vault.provider=org.wso2.carbon.securevault.azure.repository.AzureKeyVaultRepositoryProvider
-     secretRepositories.vault.properties.keyVaultName=<name-of-the-azure-key-vault>
-     secretRepositories.vault.properties.credential=<choice-of-authentication-credential>
-     secretRepositories.vault.properties.managedIdentityClientId=<client-id-of-user-assigned-managed-identity>
-     ```
-     Note that the lines of keystore configuration given above are, in fact, for the keystore used with the default file-based secret repository of the Identity Server; this keystore isn't actually necessary for storing and retrieving secrets from a Key Vault. However, the legacy configuration requires the keystore to be configured for the initialization of any secret repository. This configuration of the keystore entails adding the lines that start with `keystore.identity` mentioned above and providing the keystore password as mentioned in [Step 5: Carbon Secure Vault Root Password](#step-5-carbon-secure-vault-root-password-for-legacy-configuration-only).
-   
-     Therefore, if you are using version 5.12.0 or above of the Identity Server, it is recommended to use the novel configuration instead of the legacy configuration.
+    - **Legacy:**
+
+      ```
+      keystore.identity.location=repository/resources/security/wso2carbon.jks
+      keystore.identity.type=JKS
+      keystore.identity.store.password=identity.store.password
+      keystore.identity.store.secretProvider=org.wso2.carbon.securevault.DefaultSecretCallbackHandler
+      keystore.identity.key.password=identity.key.password
+      keystore.identity.key.secretProvider=org.wso2.carbon.securevault.DefaultSecretCallbackHandler
+      carbon.secretProvider=org.wso2.securevault.secret.handler.SecretManagerSecretCallbackHandler
+      secVault.enabled=true
+      secretRepositories=vault
+      secretRepositories.vault.provider=org.wso2.carbon.securevault.azure.repository.AzureSecretRepositoryProvider
+      secretRepositories.vault.properties.keyVaultName=<name-of-the-azure-key-vault>
+      secretRepositories.vault.properties.credential=<choice-of-authentication-credential>
+      secretRepositories.vault.properties.managedIdentityClientId=<client-id-of-user-assigned-managed-identity>
+      ```
+      Note that the lines of keystore configuration given above are, in fact, for the keystore used with the default file-based secret repository of the Identity Server; this keystore isn't actually necessary for storing and retrieving secrets from a Key Vault. However, the legacy configuration requires the keystore to be configured for the initialization of any secret repository. This configuration of the keystore entails adding the lines that start with `keystore.identity` mentioned above and providing the keystore password as mentioned in [Step 5: Carbon Secure Vault Root Password](#step-5-carbon-secure-vault-root-password-for-legacy-configuration-only).
+
+      Therefore, if you are using version 5.12.0 or above of the Identity Server, it is recommended to use the novel configuration instead of the legacy configuration.
 
 2. Edit the last three lines of either configuration according to your Key Vault and authentication preference;
-   - `keyVaultName`: the name of the Key Vault which is to be used as a secret repository. You may also choose to set this value as an environment variable named `KV_NAME` instead of adding it here.
-   - `credential`: the credential you wish to use to authenticate to the Key Vault. You may also choose to set this value as an environment variable named `CREDENTIAL` instead of adding it here. See [Step 4: Setting Up Authentication to Azure Key Vault](#step-4-setting-up-authentication-to-azure-key-vault) for further details on the options available.
-   - (optional) `managedIdentityClientId`: if authentication to the Key Vault is to be done via a user-assigned managed identity, the client id of this identity. You may also choose to set this value as an environment variable named `MI_CLIENT_ID` instead of adding it here.
+    - `keyVaultName`: the name of the Key Vault which is to be used as a secret repository. You may also choose to set this value as an environment variable named `KV_NAME` instead of adding it here.
+    - `credential`: the credential you wish to use to authenticate to the Key Vault. You may also choose to set this value as an environment variable named `CREDENTIAL` instead of adding it here. See [Step 4: Setting Up Authentication to Azure Key Vault](#step-4-setting-up-authentication-to-azure-key-vault) for further details on the options available.
+    - (optional) `managedIdentityClientId`: if authentication to the Key Vault is to be done via a user-assigned managed identity, the client id of this identity. You may also choose to set this value as an environment variable named `MI_CLIENT_ID` instead of adding it here.
 
 **Note that in all 3 cases above, if the value has been set both in the configuration file and as an environment variable, the value set in the configuration file is given priority and will be the one that is used.**
 
-## Step 3: Referencing Deployment Secrets
+## Step 4: Referencing Deployment Secrets
 
 1. In the `deployment.toml` file (`<IS_HOME>/repository/conf/deployment.toml`), replace each value to be stored as a secret with a reference.
 
@@ -86,32 +100,32 @@ The novel configuration was introduced in Identity Server 5.12.0 and the legacy 
 
 2. This step differs depending on your version of the Identity Server.
 
-   - **Version 5.12.0 onwards:**
+    - **Version 5.12.0 onwards:**
 
-     Add the following section to the `deployment.toml` file.
-     ```
-     [runtime_secrets]
-     enable = "true"
-     ```
-   
-   - **Versions below 5.12.0:**
+      Add the following section to the `deployment.toml` file.
+      ```
+      [runtime_secrets]
+      enable = "true"
+      ```
 
-     Add the following section to the `deployment.toml` file with a list of your aliases.
-     ```
-     [secrets]
-     alias1 = ""
-     alias2 = ""
-     alias3 = ""
-     ```
+    - **Versions below 5.12.0:**
 
-     Based on the example given in the previous step, it would be as follows.
-     ```
-     [secrets]
-     admin-password = “”
-     ```
+      Add the following section to the `deployment.toml` file with a list of your aliases.
+      ```
+      [secrets]
+      alias1 = ""
+      alias2 = ""
+      alias3 = ""
+      ```
+
+      Based on the example given in the previous step, it would be as follows.
+      ```
+      [secrets]
+      admin-password = “”
+      ```
 
 
-## Step 4: Setting Up Authentication to Azure Key Vault
+## Step 5: Setting Up Authentication to Azure Key Vault
 
 You have 4 choices for the authentication credential you may use and it is necessary to specify your choice either as a configuration property or an environment variable.
 
@@ -126,16 +140,16 @@ Example:
 
 - Configuring option 1 as a property in the configuration file (see [Step 2: Enabling Carbon Secure Vault](#step-2-enabling-carbon-secure-vault)):
 
-  - Legacy:
-     ```
-     secretRepositories.vault.properties.credential=env
-     ```
+    - Legacy:
+       ```
+       secretRepositories.vault.properties.credential=env
+       ```
 
-  - Novel:
-     ```
-     secretProviders.vault.repositories.azure.properties.credential=env
-     ```
-  
+    - Novel:
+       ```
+       secretProviders.vault.repositories.azure.properties.credential=env
+       ```
+
 - Alternatively, you could set it as an environment variable named `CREDENTIAL`:
 
    ```
@@ -148,7 +162,7 @@ If you are using the legacy configuration, you are required to proceed to [Step 
 
 However, if you are using the novel configurations, the next step isn't necessary and you're all set to use your Key Vault with the Identity Server's Carbon Secure Vault. Additionally, if you're interested in using your Key Vault with other secret repositories or need to troubleshoot any issues by debugging, see the sections on [Using an Azure Key Vault with Other Secret Repositories](using-an-azure-key-vault-with-other-secret-repositories) and [Debugging](debugging) respectively.
 
-## Step 5: Carbon Secure Vault Root Password [For Legacy Configuration Only]
+## Step 6: Carbon Secure Vault Root Password [For Legacy Configuration Only]
 When you start the server, you will be required to provide the keystore and private key password, which is `wso2carbon` by default.
 
 You may do this in one of the following ways.
@@ -186,7 +200,7 @@ Note that, by default, both the private key and keystore passwords are assumed t
 
 1. Create a secret and store your password(s) in your Key Vault.
 2. Edit the configurations in the `secret-conf.properties` file mentioned in [Step 2: Enabling Carbon Secure Vault](#step-2-enabling-carbon-secure-vault) as follows.
-    1. Replace the values for the two properties `keystore.identity.store.secretProvider` and `keystore.identity.key.secretProvider` with `org.wso2.carbon.securevault.azure.handler.AzureKeyVaultSecretCallbackHandler`. This is the fully qualified class path of the Azure Key Vault Secret Callback Handler, which we will be using instead of the Default Secret Callback Handler.
+    1. Replace the values for the two properties `keystore.identity.store.secretProvider` and `keystore.identity.key.secretProvider` with `org.wso2.carbon.securevault.azure.handler.AzureSecretCallbackHandler`. This is the fully qualified class path of the Azure Key Vault Secret Callback Handler, which we will be using instead of the Default Secret Callback Handler.
     2. Provide the alias and version of your password(s) in the format `alias_version` as below. If only the alias is given, the latest version of the secret will be retrieved.
          ```
          keystore.identity.store.alias=<alias-and-version-of-password>
@@ -194,20 +208,20 @@ Note that, by default, both the private key and keystore passwords are assumed t
          ```
        If both the keystore and private key passwords are the same, only provide the keystore password (the first line). However, if they are not, provide the alias and version of the private key password as well.
 
-Your configuration file would now be as follows. 
+Your configuration file would now be as follows.
 ```
 keystore.identity.location=repository/resources/security/wso2carbon.jks
 keystore.identity.type=JKS
 keystore.identity.store.password=identity.store.password
 keystore.identity.store.alias=<alias-and-version-of-password>
-keystore.identity.store.secretProvider=org.wso2.carbon.securevault.azure.handler.AzureKeyVaultSecretCallbackHandler
+keystore.identity.store.secretProvider=org.wso2.carbon.securevault.azure.handler.AzureSecretCallbackHandler
 keystore.identity.key.password=identity.key.password
-keystore.identity.key.secretProvider=org.wso2.carbon.securevault.azure.handler.AzureKeyVaultSecretCallbackHandler
+keystore.identity.key.secretProvider=org.wso2.carbon.securevault.azure.handler.AzureSecretCallbackHandler
 keystore.identity.key.alias=<alias-and-version-of-password>
 carbon.secretProvider=org.wso2.securevault.secret.handler.SecretManagerSecretCallbackHandler
 secVault.enabled=true
 secretRepositories=vault
-secretRepositories.vault.provider=org.wso2.carbon.securevault.azure.repository.AzureKeyVaultRepositoryProvider
+secretRepositories.vault.provider=org.wso2.carbon.securevault.azure.repository.AzureSecretRepositoryProvider
 secretRepositories.vault.properties.keyVaultName=<name-of-the-azure-key-vault>
 secretRepositories.vault.properties.credential=<choice-of-authentication-credential>
 secretRepositories.vault.properties.managedIdentityClientId=<client-id-of-user-assigned-managed-identity>
@@ -229,7 +243,7 @@ The steps to set this up are as follows.
    secretProviders=vault
    secretProviders.vault.provider=org.wso2.securevault.secret.repository.VaultSecretRepositoryProvider
    secretProviders.vault.repositories=azure,<other-repository-type>
-   secretProviders.vault.repositories.azure=org.wso2.carbon.securevault.azure.repository.AzureKeyVaultRepository
+   secretProviders.vault.repositories.azure=org.wso2.carbon.securevault.azure.repository.AzureSecretRepository
    secretProviders.vault.repositories.azure.properties.keyVaultName=<name-of-the-azure-key-vault>
    secretProviders.vault.repositories.azure.properties.credential=<choice-of-authentication-credential>
    secretProviders.vault.repositories.azure.properties.managedIdentityClientId=<client-id-of-user-assigned-managed-identity>

@@ -17,26 +17,26 @@
 package org.wso2.carbon.securevault.azure.exception;
 
 /**
- * The exception thrown when the Azure Key Vault configurations have not been set properly.
+ * Exception thrown when the Azure Key Vault configurations have not been set properly.
  */
-public class AzureKeyVaultException extends Exception {
+public class AzureSecretRepositoryException extends Exception {
 
     /**
      * Constructs a new exception with the specified detail message.
      *
-     * @param message the detail message for the exception.
+     * @param message The detail message for the exception.
      */
-    public AzureKeyVaultException(String message) {
+    public AzureSecretRepositoryException(String message) {
         super(message);
     }
 
     /**
      * Constructs a new exception with the specified detail message and cause.
      *
-     * @param message the detail message for the exception.
-     * @param cause the cause of the exception.
+     * @param message The detail message for the exception.
+     * @param cause   The cause of the exception.
      */
-    public AzureKeyVaultException(String message, Throwable cause) {
+    public AzureSecretRepositoryException(String message, Throwable cause) {
         super(message, cause);
     }
 }
