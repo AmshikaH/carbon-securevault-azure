@@ -27,7 +27,7 @@
     <parent>
         <groupId>org.wso2</groupId>
         <artifactId>wso2</artifactId>
-        <version>1.4</version>
+        <version>5.1</version>
     </parent>
 
     <packaging>bundle</packaging>
@@ -42,17 +42,23 @@
                     <instructions>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Export-Package>
-                            org.wso2.carbon.securevault.azure.exception;version="${project.version}",
                             org.wso2.carbon.securevault.azure.handler;version="${project.version}",
-                            org.wso2.carbon.securevault.azure.repository;version="${project.version}"
+                            org.wso2.carbon.securevault.azure.exception;version="${project.version}",
+                            org.wso2.carbon.securevault.azure.repository;version="${project.version}",
+                            org.wso2.carbon.securevault.azure.commons;version="${project.version}"
                         </Export-Package>
-                        <DynamicImport-Package>*</DynamicImport-Package>
                         <Import-Package>
+                            com.nimbusds.jwt;version="${com.nimusds.jwt.version.range}",
+                            com.sun.jna;version="${com.sun.jna.version.range}",
                             org.apache.commons.lang;version="${org.apache.commons.lang.import.version.range}",
                             org.apache.commons.logging;version="${org.apache.commons.logging.import.version.range}",
                             org.wso2.carbon.utils;version="${carbon.kernel.import.version.range}",
+                            org.wso2.securevault;version="${org.wso2.securevault.import.version.range}",
+                            org.wso2.securevault.definition;version="${org.wso2.securevault.import.version.range}",
                             org.wso2.securevault.keystore;version="${org.wso2.securevault.import.version.range}",
-                            org.wso2.securevault.secret;version="${org.wso2.securevault.import.version.range}"
+                            org.wso2.securevault.secret;version="${org.wso2.securevault.import.version.range}",
+                            net.minidev.json;version="${net.minidev.json.version.range}",
+                            net.minidev.json.parser;version="${net.minidev.json.version.range}"
                         </Import-Package>
                         <Embed-Dependency>
                             azure-core;
@@ -73,59 +79,6 @@
                         <_fixupmessages>"Classes found in the wrong directory..."</_fixupmessages>
                     </instructions>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>com.github.spotbugs</groupId>
-                <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>${spotbugs.maven.plugin.version}</version>
-                <configuration>
-                    <effort>Max</effort>
-                    <threshold>Low</threshold>
-                    <failOnError>true</failOnError>
-                    <maxHeap>1024</maxHeap>
-                    <plugins>
-                        <plugin>
-                            <groupId>com.h3xstream.findsecbugs</groupId>
-                            <artifactId>findsecbugs-plugin</artifactId>
-                            <version>${findsecbugs.plugin.version}</version>
-                        </plugin>
-                    </plugins>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>analyze-compile</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>${maven.checkstyle.plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>validate</id>
-                        <phase>validate</phase>
-                        <configuration>
-                            <configLocation>
-                                https://raw.githubusercontent.com/wso2/code-quality-tools/master/checkstyle/checkstyle.xml
-                            </configLocation>
-                            <suppressionsLocation>
-                                https://raw.githubusercontent.com/wso2/code-quality-tools/master/checkstyle/suppressions.xml
-                            </suppressionsLocation>
-                            <encoding>UTF-8</encoding>
-                            <consoleOutput>true</consoleOutput>
-                            <failsOnError>true</failsOnError>
-                            <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                        </configuration>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
@@ -236,9 +189,9 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.github.spotbugs</groupId>
-            <artifactId>spotbugs-annotations</artifactId>
-            <version>${com.github.spotbugs.annotations}</version>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>annotations</artifactId>
+            <version>${findbugs.annotation.version}</version>
         </dependency>
     </dependencies>
 
@@ -247,6 +200,9 @@
         <org.apache.commons.lang.import.version.range>[2.6.0,3.0.0)</org.apache.commons.lang.import.version.range>
         <org.apache.commons.logging.import.version.range>[1.2.0,2.0.0)</org.apache.commons.logging.import.version.range>
         <org.wso2.securevault.import.version.range>[1.1.0, 2.0.0)</org.wso2.securevault.import.version.range>
+        <net.minidev.json.version.range>[2.0.0, 3.0.0)</net.minidev.json.version.range>
+        <com.nimusds.jwt.version.range>[7.0.0, 8.0.0)</com.nimusds.jwt.version.range>
+        <com.sun.jna.version.range>[1.6.0, 2.0.0)</com.sun.jna.version.range>
 
         <carbon.kernel.version>4.6.2</carbon.kernel.version>
         <com.azure.core.version>1.20.0</com.azure.core.version>
@@ -265,10 +221,12 @@
         <org.reactivestreams.version>1.0.3</org.reactivestreams.version>
         <org.wso2.securevault.version>1.1.4</org.wso2.securevault.version>
 
+        <maven.findbugsplugin.version>3.0.5</maven.findbugsplugin.version>
         <findsecbugs.plugin.version>1.10.1</findsecbugs.plugin.version>
         <maven.bundle.plugin.version>5.1.4</maven.bundle.plugin.version>
         <maven.checkstyle.plugin.version>2.17</maven.checkstyle.plugin.version>
-        <spotbugs.maven.plugin.version>4.1.3</spotbugs.maven.plugin.version>
+        <findbugs.annotation.version>3.0.1</findbugs.annotation.version>
+        <commons_io.version>2.7</commons_io.version>
 
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
