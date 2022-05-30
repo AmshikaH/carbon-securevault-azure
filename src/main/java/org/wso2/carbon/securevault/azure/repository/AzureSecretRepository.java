@@ -57,7 +57,6 @@ public class AzureSecretRepository implements SecretRepository {
     private static final String TRUSTED = "trusted";
     private Boolean encryptionEnabled = false;
     private SecretClient secretClient;
-    private String algorithm;
     private DecryptionProvider baseCipher;
     private ConfigUtils configUtils;
     private SecretRepository parentRepository;
@@ -118,8 +117,8 @@ public class AzureSecretRepository implements SecretRepository {
     public String getSecret(String alias) {
 
         /* If no secret was retrieved, an empty String would be returned. If a runtime exception is thrown,
-        secret retrieval is attempted repeatedly in a loop, which would prevent moving on to the next step
-        or the server breaking.*/
+        secret retrieval is attempted repeatedly in a loop for certain secrets, which would prevent moving on to the
+        next step or the server breaking.*/
         String secret = "";
         try {
             secret = retrieveSecretFromVault(alias);
@@ -139,9 +138,8 @@ public class AzureSecretRepository implements SecretRepository {
                 log.debug("Secret with reference '" + alias.replaceAll(REGEX, "")
                         + "' was successfully retrieved from Azure Key Vault.");
             }
-            return secret;
         }
-        throw new RuntimeException("No secret found!");
+        return secret;
     }
 
     /**
@@ -151,7 +149,7 @@ public class AzureSecretRepository implements SecretRepository {
      */
     @Override
     public String getEncryptedData(String alias) {
-        //TODO: Check usage
+
         if (encryptionEnabled) {
             try {
                 return retrieveSecretFromVault(alias);
@@ -193,7 +191,7 @@ public class AzureSecretRepository implements SecretRepository {
      */
     private void initDecryptionProvider(Properties properties) {
 
-        algorithm = configUtils.getConfig(properties, ALGORITHM, DEFAULT_ALGORITHM);
+        String algorithm = configUtils.getConfig(properties, ALGORITHM, DEFAULT_ALGORITHM);
         String keyStore = properties.getProperty(DOT + KEY + StringUtils.capitalise(STORE));
         KeyStoreWrapper keyStoreWrapper;
         if (TRUSTED.equals(keyStore)) {

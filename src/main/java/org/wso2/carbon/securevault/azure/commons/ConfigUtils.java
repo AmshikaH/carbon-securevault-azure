@@ -73,13 +73,12 @@ public class ConfigUtils {
     @SuppressFBWarnings("PATH_TRAVERSAL_IN")
     public static synchronized Properties getConfigProperties() throws AzureSecretRepositoryException {
 
-        if (properties == null) {
+        if (properties == null) { //TODO: Check in code review
             properties = new Properties();
             try (InputStream inputStream = new FileInputStream(CONFIG_FILE_PATH)) {
                 properties.load(inputStream);
             } catch (IOException e) {
-                throw new AzureSecretRepositoryException("Error while loading configurations from "
-                        + CONFIG_FILE + " file.", e);
+                log.error("Error while loading configurations from " + CONFIG_FILE + " file.", e);
             }
         }
         return properties;
