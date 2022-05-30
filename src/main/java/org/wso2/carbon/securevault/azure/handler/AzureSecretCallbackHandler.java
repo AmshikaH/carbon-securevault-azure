@@ -134,7 +134,7 @@ public class AzureSecretCallbackHandler extends AbstractSecretCallbackHandler {
             }
         } else {
             if (console != null && (password = console.readPassword("[%s]",
-                    "Enter tne Keystore Password:")) != null) {
+                    "Enter the Keystore Password:")) != null) {
                 keyStorePassword = String.valueOf(password);
             }
             if (console != null && (password = console.readPassword("[%s]",

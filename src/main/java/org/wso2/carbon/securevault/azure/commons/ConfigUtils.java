@@ -20,7 +20,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.securevault.azure.exception.AzureSecretRepositoryException;
 import org.wso2.carbon.utils.CarbonUtils;
 
 import java.io.File;
@@ -68,12 +67,11 @@ public class ConfigUtils {
      * Reads configuration properties from the secret-conf.properties file.
      *
      * @return Configuration properties from the secret-conf.properties file.
-     * @throws AzureSecretRepositoryException If an error occurs while reading the secret-conf.properties file.
      */
     @SuppressFBWarnings("PATH_TRAVERSAL_IN")
-    public static synchronized Properties getConfigProperties() throws AzureSecretRepositoryException {
+    public static synchronized Properties getConfigProperties() {
 
-        if (properties == null) { //TODO: Check in code review
+        if (properties == null) { 
             properties = new Properties();
             try (InputStream inputStream = new FileInputStream(CONFIG_FILE_PATH)) {
                 properties.load(inputStream);

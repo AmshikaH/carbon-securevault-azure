@@ -91,7 +91,7 @@ public class SecretClientUtils {
      * @return the Secret Client to be used in secret retrieval.
      * @throws AzureSecretRepositoryException If an error occurs while building the secret client.
      */
-    public static SecretClient buildSecretClient(Properties configProperties) throws AzureSecretRepositoryException {
+    private static SecretClient buildSecretClient(Properties configProperties) throws AzureSecretRepositoryException {
 
         if (log.isDebugEnabled()) {
             log.debug("Building secret client.");

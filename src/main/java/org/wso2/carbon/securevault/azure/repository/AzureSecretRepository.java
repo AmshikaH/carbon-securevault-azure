@@ -97,9 +97,9 @@ public class AzureSecretRepository implements SecretRepository {
             if (!AZURE_SECRET_CALLBACK_HANDLER.equals(id)) {
                 configUtils = ConfigUtils.getInstance();
                 encryptionEnabled = Boolean.parseBoolean(configUtils.getConfig(properties, ENCRYPTION_ENABLED, null));
-            }
-            if (encryptionEnabled) {
-                initDecryptionProvider(properties);
+                if (encryptionEnabled) {
+                    initDecryptionProvider(properties);
+                }
             }
         } catch (AzureSecretRepositoryException e) {
             log.error("Failed to build secret client.", e);
