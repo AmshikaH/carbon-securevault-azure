@@ -1,20 +1,4 @@
-/*
- * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package org.wso2.carbon.securevault.azure.commons;
+package org.wso2.carbon.securevault.azure.repository;
 
 import com.azure.core.credential.TokenCredential;
 import com.azure.identity.AzureCliCredentialBuilder;
@@ -28,6 +12,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.securevault.azure.commons.ConfigUtils;
 import org.wso2.carbon.securevault.azure.exception.AzureSecretRepositoryException;
 
 import java.io.BufferedReader;
@@ -38,16 +23,17 @@ import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 import static org.wso2.carbon.securevault.azure.commons.Constants.AZURE;
+import static org.wso2.carbon.securevault.azure.commons.Constants.CRLF_SANITATION_REGEX;
 import static org.wso2.carbon.securevault.azure.commons.Constants.DOT;
-import static org.wso2.carbon.securevault.azure.commons.Constants.REGEX;
 import static org.wso2.carbon.securevault.azure.commons.Constants.VAULT;
 
 /**
  * Utils class to build the Secret Client used in secret retrieval by
  * reading the relevant configurations and using them accordingly.
  */
-public class SecretClientUtils {
+public class SecretClientFactory {
 
+    private static final Log log = LogFactory.getLog(SecretClientFactory.class);
     private static final String CLIENT_ID_FILE_PATH = "clientIdFilePath";
     private static final String CLIENT_SECRET_FILE_PATH = "clientSecretFilePath";
     private static final String TENANT_ID_FILE_PATH = "tenantIdFilePath";
@@ -61,7 +47,7 @@ public class SecretClientUtils {
     private static final String KEY_VAULT_NAME = "keyVaultName";
     private static final String MANAGED_IDENTITY_CLIENT_ID = "managedIdentityClientId";
     private static final String NET = "net";
-    private static final Log log = LogFactory.getLog(SecretClientUtils.class);
+    private static ConfigUtils configUtils;
     private static SecretClient secretClient;
     private static String credential;
     private static String keyVaultName;
@@ -74,11 +60,11 @@ public class SecretClientUtils {
      * @return The secret client to retrieve secrets from the configured Azure Key Vault.
      * @throws AzureSecretRepositoryException If an error occurs while building the secret client.
      */
-    public static synchronized SecretClient getSecretClient(Properties properties)
+    static synchronized SecretClient getSecretClient(Properties properties)
             throws AzureSecretRepositoryException {
 
         if (secretClient == null) {
-            secretClient = SecretClientUtils.buildSecretClient(properties);
+            secretClient = buildSecretClient(properties);
         }
         return secretClient;
     }
@@ -97,36 +83,16 @@ public class SecretClientUtils {
             log.debug("Building secret client.");
         }
         properties = configProperties;
-        loadConfigurations();
-        secretClient = new SecretClientBuilder()
-                .vaultUrl(HTTPS_COLON_DOUBLE_SLASH + keyVaultName + DOT + VAULT + DOT + AZURE + DOT + NET)
-                .credential(createChosenCredential())
-                .buildClient();
-        return secretClient;
-    }
-
-    /**
-     * Reads the configuration properties required to build the Secret Client.
-     *
-     * @throws AzureSecretRepositoryException If the configurations have not been provided.
-     */
-    public static void loadConfigurations() throws AzureSecretRepositoryException {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Loading configurations for Azure Key Vault.");
-        }
-        ConfigUtils configUtils = ConfigUtils.getInstance();
-        keyVaultName = configUtils.getConfig(properties, KEY_VAULT_NAME, null);
+        configUtils = ConfigUtils.getInstance();
+        keyVaultName = configUtils.getAzureSecretRepositoryConfig(properties, KEY_VAULT_NAME);
         if (StringUtils.isEmpty(keyVaultName)) {
             throw new AzureSecretRepositoryException("Key Vault name not provided.");
         }
-        credential = configUtils.getConfig(properties, CREDENTIAL, null);
-        if (StringUtils.isEmpty(credential)) {
-            throw new AzureSecretRepositoryException("Authentication credential choice not provided.");
-        }
-        if (credential.equals(CREDENTIAL_MI) || credential.equals(CREDENTIAL_CHAIN)) {
-            managedIdentityClientId = configUtils.getConfig(properties, MANAGED_IDENTITY_CLIENT_ID, null);
-        }
+        secretClient = new SecretClientBuilder()
+                .vaultUrl(HTTPS_COLON_DOUBLE_SLASH + keyVaultName + DOT + VAULT + DOT + AZURE + DOT + NET)
+                .credential(buildChosenCredential())
+                .buildClient();
+        return secretClient;
     }
 
     /**
@@ -135,8 +101,12 @@ public class SecretClientUtils {
      * @return Credential to be used in authentication.
      * @throws AzureSecretRepositoryException If the authentication credential choice is invalid.
      */
-    private static TokenCredential createChosenCredential() throws AzureSecretRepositoryException {
+    private static TokenCredential buildChosenCredential() throws AzureSecretRepositoryException {
 
+        credential = configUtils.getAzureSecretRepositoryConfig(properties, CREDENTIAL);
+        if (StringUtils.isEmpty(credential)) {
+            credential = "";
+        }
         TokenCredential tokenCredential;
         switch(credential) {
             case CREDENTIAL_ENV:
@@ -145,23 +115,24 @@ public class SecretClientUtils {
                 break;
             case CREDENTIAL_MI:
                 tokenCredential = new ManagedIdentityCredentialBuilder()
-                        .clientId(managedIdentityClientId)
+                        .clientId(configUtils.getAzureSecretRepositoryConfig(properties, MANAGED_IDENTITY_CLIENT_ID))
                         .build();
                 break;
             case CREDENTIAL_CLI:
                 tokenCredential = new AzureCliCredentialBuilder()
                         .build();
                 break;
-            case CREDENTIAL_CHAIN:
-                tokenCredential = new DefaultAzureCredentialBuilder()
-                        .managedIdentityClientId(managedIdentityClientId)
-                        .build();
-                break;
             case CREDENTIAL_FILE:
                 tokenCredential = createClientSecretCredential();
                 break;
             default:
-                throw new AzureSecretRepositoryException("Invalid choice for Key Vault authentication credential.");
+                if (!CREDENTIAL_CHAIN.equals(credential)) {
+                    log.info("Valid authentication credential choice not provided. Using default chain.");
+                }
+                tokenCredential = new DefaultAzureCredentialBuilder()
+                        .managedIdentityClientId(configUtils.getAzureSecretRepositoryConfig(properties,
+                                MANAGED_IDENTITY_CLIENT_ID))
+                        .build();
         }
         return tokenCredential;
     }
@@ -201,21 +172,22 @@ public class SecretClientUtils {
     private static String readCredential(String credentialFileProperty) throws AzureSecretRepositoryException {
 
         ConfigUtils configUtils = ConfigUtils.getInstance();
-        String credentialFilePath = configUtils.getConfig(properties, credentialFileProperty, null);
+        String credentialFilePath = configUtils.getAzureSecretRepositoryConfig(properties, credentialFileProperty);
         if (StringUtils.isEmpty(credentialFilePath)) {
-            throw new AzureSecretRepositoryException(credentialFileProperty.replaceAll(REGEX, "") + " not provided.");
+            throw new AzureSecretRepositoryException(credentialFileProperty.replaceAll(CRLF_SANITATION_REGEX,
+                    "") + " not provided.");
         }
         try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream
                 (credentialFilePath), StandardCharsets.UTF_8))) {
             String credentialValue = bufferedReader.readLine();
             if (StringUtils.isEmpty(credentialValue)) {
-                throw new AzureSecretRepositoryException(credentialFileProperty.replaceAll(REGEX, "")
+                throw new AzureSecretRepositoryException(credentialFileProperty.replaceAll(CRLF_SANITATION_REGEX, "")
                         + " not found in file.");
             }
             return credentialValue;
         } catch (IOException e) {
             throw new AzureSecretRepositoryException("Error while loading " +
-                    credentialFileProperty.replaceAll(REGEX, "") + " from file.", e);
+                    credentialFileProperty.replaceAll(CRLF_SANITATION_REGEX, "") + " from file.", e);
         }
     }
 }

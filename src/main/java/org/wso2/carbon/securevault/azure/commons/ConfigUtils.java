@@ -16,37 +16,27 @@
 
 package org.wso2.carbon.securevault.azure.commons;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.utils.CarbonUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Properties;
 
 import static org.wso2.carbon.securevault.azure.commons.Constants.CONFIG_FILE;
-import static org.wso2.carbon.securevault.azure.commons.Constants.DELIMITER;
+import static org.wso2.carbon.securevault.azure.commons.Constants.CRLF_SANITATION_REGEX;
 import static org.wso2.carbon.securevault.azure.commons.Constants.LEGACY_CONFIG_PREFIX;
 import static org.wso2.carbon.securevault.azure.commons.Constants.NOVEL_CONFIG_PREFIX;
-import static org.wso2.carbon.securevault.azure.commons.Constants.REGEX;
 import static org.wso2.carbon.securevault.azure.commons.Constants.SECRET_REPOSITORIES;
 
 /**
- * Config Utils class to read the secret-conf.properties file and
- * its properties as well as environment variables containing configurations.
+ * Config Utils class to read the configurations from the
+ * secret-conf.properties file as well as environment variables.
  */
 public class ConfigUtils {
 
-    private static final String SECURITY = "security";
-    private static final String ENV_PREFIX = "AKV";
-    private static final String CONFIG_FILE_PATH = CarbonUtils.getCarbonConfigDirPath() +
-            File.separator + SECURITY + File.separator + CONFIG_FILE;
+    private static final String ENV_PREFIX = "akv";
+    private static final String UNDERSCORE = "_";
     private static final Log log = LogFactory.getLog(ConfigUtils.class);
-    private static Properties properties;
     private static String propertyPrefix;
     private static ConfigUtils instance;
 
@@ -64,43 +54,27 @@ public class ConfigUtils {
     }
 
     /**
-     * Reads configuration properties from the secret-conf.properties file.
-     *
-     * @return Configuration properties from the secret-conf.properties file.
-     */
-    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
-    public static synchronized Properties getConfigProperties() {
-
-        if (properties == null) { 
-            properties = new Properties();
-            try (InputStream inputStream = new FileInputStream(CONFIG_FILE_PATH)) {
-                properties.load(inputStream);
-            } catch (IOException e) {
-                log.error("Error while loading configurations from " + CONFIG_FILE + " file.", e);
-            }
-        }
-        return properties;
-    }
-
-    /**
-     * Gets a configuration; first, it is attempted to read the value from the secret-config.properties file.
+     * Gets a configuration; first, it is attempted to read the value from the secret-conf.properties file.
      * If a value is not found in the file, it is attempted to read the value from environment variables.
-     * If a value is not found here either, the default value is returned.
      *
      * @param properties   Configuration properties from the secret-conf.properties file.
      * @param configName   The name of the configuration property.
-     * @param defaultValue The default value of the configuration property.
      * @return The value of the configuration property.
      */
-    public String getConfig(Properties properties, String configName, String defaultValue) {
+    public String getAzureSecretRepositoryConfig(Properties properties, String configName) {
 
-        String configValue = properties.getProperty(readConfigPrefixType(properties) + configName);
+        String configValue = properties.getProperty(readConfigPrefix(properties) + configName);
         if (StringUtils.isNotEmpty(configValue)) {
             if (log.isDebugEnabled()) {
-                log.debug("Using " + configName.replaceAll(REGEX, "") + " found in " + CONFIG_FILE + " file.");
+                log.debug("Using " + configName.replaceAll(CRLF_SANITATION_REGEX, StringUtils.EMPTY) + " found in " +
+                        CONFIG_FILE + " file.");
             }
         } else {
-            configValue = getEnvOrDefaultConfig(configName, defaultValue);
+            if (log.isDebugEnabled()) {
+                log.debug(configName.replaceAll(CRLF_SANITATION_REGEX, StringUtils.EMPTY) + " not found in " +
+                        CONFIG_FILE + " file. Checking environment variables.");
+            }
+            configValue = getConfigFromEnvironmentVariables(configName);
         }
         if (StringUtils.isNotEmpty(configValue)) {
             configValue = configValue.trim();
@@ -109,30 +83,24 @@ public class ConfigUtils {
     }
 
     /**
-     * Reads a configuration property from environment variables. If a value is not found,
-     * the default value is returned.
+     * Reads a configuration property from environment variables.
      *
      * @param configName   The name of the configuration property.
-     * @param defaultValue The default value of the configuration property.
      * @return The value of the configuration property.
      */
-    private String getEnvOrDefaultConfig(String configName, String defaultValue) {
+    private String getConfigFromEnvironmentVariables(String configName) {
 
-        String configValue = System.getenv(ENV_PREFIX + DELIMITER + configName);
+        String configValue = System.getenv(ENV_PREFIX + UNDERSCORE + configName);
         if (StringUtils.isNotEmpty(configValue)) {
             if (log.isDebugEnabled()) {
-                log.debug("Using " + configName.replaceAll(REGEX, "") + " found as an environment variable.");
+                log.debug("Using " + configName.replaceAll(CRLF_SANITATION_REGEX, StringUtils.EMPTY) +
+                        " found as an environment variable.");
             }
             return configValue;
         }
-        configValue = defaultValue;
         if (log.isDebugEnabled()) {
-            String valueToLog = configValue;
-            if (StringUtils.isEmpty(configValue)) {
-                valueToLog = configValue == null ? "null" : "empty String";
-            }
-            log.debug(configName.replaceAll(REGEX, "") + " not configured. Using default value: " +
-                    valueToLog.replaceAll(REGEX, "") + ".");
+            log.debug(configName.replaceAll(CRLF_SANITATION_REGEX, StringUtils.EMPTY) + " not found as an " +
+                    "environment variable.");
         }
         return configValue;
     }
@@ -143,20 +111,28 @@ public class ConfigUtils {
      * @param properties Configuration properties from the secret-conf.properties file.
      * @return The property prefix used in the secret-conf.properties file.
      */
-    private static String readConfigPrefixType(Properties properties) {
+    private static String readConfigPrefix(Properties properties) {
 
         if (StringUtils.isEmpty(propertyPrefix)) {
-            String legacyProvidersString = properties.getProperty(SECRET_REPOSITORIES, null);
-            if (StringUtils.isEmpty(legacyProvidersString)) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Legacy provider not found. Using novel configurations.");
-                }
-                propertyPrefix = NOVEL_CONFIG_PREFIX;
-            } else {
+            /*
+            - With the legacy configuration, a property called "secretRepositories" is used to specify the type of
+            secret repository to be used (example: "azure") and is the prefix for the rest of the properties.
+
+            - With the novel configuration, since multiple secret repositories may be used based on the provider, the
+            provider type must be specified first using a property called "secretProviders" (example: "vault") and is
+            the prefix for the rest of the properties.
+            */
+            String legacyProvidersString = properties.getProperty(SECRET_REPOSITORIES);
+            if (StringUtils.isNotEmpty(legacyProvidersString)) {
                 if (log.isDebugEnabled()) {
                     log.debug("Legacy provider found. Using legacy configurations.");
                 }
                 propertyPrefix = LEGACY_CONFIG_PREFIX;
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Legacy provider not found. Using novel configurations.");
+                }
+                propertyPrefix = NOVEL_CONFIG_PREFIX;
             }
         }
         return propertyPrefix;

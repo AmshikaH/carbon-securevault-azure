@@ -17,13 +17,12 @@
 package org.wso2.carbon.securevault.azure.commons;
 
 /**
- * The constant common to multiple classes in the extension.
+ * Class to define the public constants used.
  */
 public class Constants {
 
     public static final String AZURE = "azure";
     public static final String CONFIG_FILE = "secret-conf.properties";
-    public static final String DELIMITER = "_";
     public static final String DOT = ".";
     public static final String ENCRYPTION_ENABLED = "encryptionEnabled";
     public static final String AZURE_SECRET_CALLBACK_HANDLER = "azureSecretCallbackHandler";
@@ -32,7 +31,7 @@ public class Constants {
     public static final String REPOSITORIES = "repositories";
     public static final String SECRET_PROVIDERS = "secretProviders";
     public static final String SECRET_REPOSITORIES = "secretRepositories";
-    public static final String REGEX = "[\r\n]";
+    public static final String CRLF_SANITATION_REGEX = "[\r\n]";
     public static final String STORE = "store";
     public static final String VAULT = "vault";
     public static final String NOVEL_CONFIG_PREFIX = SECRET_PROVIDERS + DOT + VAULT + DOT + REPOSITORIES + DOT +

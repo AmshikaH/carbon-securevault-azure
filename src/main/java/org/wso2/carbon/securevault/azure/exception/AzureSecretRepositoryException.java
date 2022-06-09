@@ -17,7 +17,8 @@
 package org.wso2.carbon.securevault.azure.exception;
 
 /**
- * Exception thrown when the Azure Key Vault configurations have not been set properly.
+ * Exception thrown when an Azure Key Vault is used as an external
+ * secret repository and errors occur.
  */
 public class AzureSecretRepositoryException extends Exception {
 

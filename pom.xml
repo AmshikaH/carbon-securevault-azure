@@ -23,6 +23,7 @@
     <groupId>org.wso2.carbon</groupId>
     <artifactId>org.wso2.carbon.securevault.azure</artifactId>
     <version>1.0</version>
+    <packaging>bundle</packaging>
 
     <parent>
         <groupId>org.wso2</groupId>
@@ -30,7 +31,6 @@
         <version>5.1</version>
     </parent>
 
-    <packaging>bundle</packaging>
     <build>
         <plugins>
             <plugin>
@@ -50,6 +50,8 @@
                         <Import-Package>
                             com.nimbusds.jwt;version="${com.nimbusds.jwt.import.version.range}",
                             com.sun.jna;version="${com.sun.jna.import.version.range}",
+                            net.minidev.json;version="${net.minidev.json.import.version.range}",
+                            net.minidev.json.parser;version="${net.minidev.json.import.version.range}",
                             org.apache.commons.lang;version="${org.apache.commons.lang.import.version.range}",
                             org.apache.commons.logging;version="${org.apache.commons.logging.import.version.range}",
                             org.slf4j;version="${org.slf4j.import.version.range}",
@@ -57,9 +59,7 @@
                             org.wso2.securevault;version="${org.wso2.securevault.import.version.range}",
                             org.wso2.securevault.definition;version="${org.wso2.securevault.import.version.range}",
                             org.wso2.securevault.keystore;version="${org.wso2.securevault.import.version.range}",
-                            org.wso2.securevault.secret;version="${org.wso2.securevault.import.version.range}",
-                            net.minidev.json;version="${net.minidev.json.import.version.range}",
-                            net.minidev.json.parser;version="${net.minidev.json.import.version.range}"
+                            org.wso2.securevault.secret;version="${org.wso2.securevault.import.version.range}"
                         </Import-Package>
                         <Embed-Dependency>
                             azure-core;
@@ -77,8 +77,20 @@
                             reactive-streams;
                             reactor-core
                         </Embed-Dependency>
+                        <!--The maven-bundle-plugin used to build the OSGi bundle doesn't support
+                        multi-release jars yet and gives the mentioned warning when multi-release
+                        dependencies are embedded. The following line is meant to address that.-->
                         <_fixupmessages>"Classes found in the wrong directory..."</_fixupmessages>
                     </instructions>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <environmentVariables>
+                        <akv_keyVaultName>kv-test</akv_keyVaultName>
+                    </environmentVariables>
                 </configuration>
             </plugin>
         </plugins>
@@ -89,6 +101,12 @@
             <groupId>com.azure</groupId>
             <artifactId>azure-core</artifactId>
             <version>${com.azure.core.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.azure</groupId>
@@ -126,11 +144,23 @@
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
             <version>${com.fasterxml.jackson.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
             <version>${com.fasterxml.jackson.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -141,6 +171,12 @@
             <groupId>com.microsoft.azure</groupId>
             <artifactId>msal4j</artifactId>
             <version>${com.microsoft.azure.msal4j.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.nimbusds</groupId>
@@ -174,9 +210,37 @@
             <version>${io.projectreactor.reactor.core.version}</version>
         </dependency>
         <dependency>
+            <groupId>commons-lang.wso2</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>${commons.lang.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.securevault</groupId>
+            <artifactId>org.wso2.securevault</artifactId>
+            <version>1.1.5</version>
+            <scope>system</scope>
+            <systemPath>C:\Users\amshi\Documents\GitHub\carbon-secvault\src\main\resources\org.wso2.securevault-1.1.5-SNAPSHOT.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.0</version>
+        </dependency>
+        <!--<dependency>
             <groupId>org.wso2.securevault</groupId>
             <artifactId>org.wso2.securevault</artifactId>
             <version>${org.wso2.securevault.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.codehaus.woodstox</groupId>
+                    <artifactId>wstx-asl</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>-->
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.2</version>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>
@@ -194,38 +258,69 @@
             <artifactId>annotations</artifactId>
             <version>${findbugs.annotation.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${org.junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${org.mockito.core.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
+            <version>${org.mockito.inline.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <properties>
         <carbon.kernel.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.import.version.range>
+        <com.jackson.fasterxml.import.version.range>[2.10.5, 2.14.0)</com.jackson.fasterxml.import.version.range>
+        <com.fasterxml.jackson.databind.import.version.range>[2.13.2.2, 2.14.0)</com.fasterxml.jackson.databind.import.version.range>
+        <com.nimbusds.jwt.import.version.range>[7.0.0, 8.0.0)</com.nimbusds.jwt.import.version.range>
+        <com.sun.jna.import.version.range>[1.6.0, 2.0.0)</com.sun.jna.import.version.range>
+        <javax.import.version.range>[0.0.0, 0.5.0)</javax.import.version.range>
+        <javax.xml.stream.import.version.range>[1.0.0, 1.5.0)</javax.xml.stream.import.version.range>
+        <net.minidev.json.import.version.range>[2.0.0, 3.0.0)</net.minidev.json.import.version.range>
         <org.apache.commons.lang.import.version.range>[2.6.0,3.0.0)</org.apache.commons.lang.import.version.range>
         <org.apache.commons.logging.import.version.range>[1.2.0,2.0.0)</org.apache.commons.logging.import.version.range>
         <org.slf4j.import.version.range>[1.7.0, 1.8.0)</org.slf4j.import.version.range>
         <org.wso2.securevault.import.version.range>[1.1.0, 2.0.0)</org.wso2.securevault.import.version.range>
-        <net.minidev.json.import.version.range>[2.0.0, 3.0.0)</net.minidev.json.import.version.range>
-        <com.nimbusds.jwt.import.version.range>[7.0.0, 8.0.0)</com.nimbusds.jwt.import.version.range>
-        <com.sun.jna.import.version.range>[1.6.0, 2.0.0)</com.sun.jna.import.version.range>
 
         <carbon.kernel.version>4.6.2</carbon.kernel.version>
-        <com.azure.core.version>1.20.0</com.azure.core.version>
-        <com.azure.core.http.okhttp.version>1.7.5</com.azure.core.http.okhttp.version>
-        <com.azure.identity.version>1.3.6</com.azure.identity.version>
-        <com.azure.security.keyvault.secrets.version>4.3.4</com.azure.security.keyvault.secrets.version>
-        <com.fasterxml.jackson.version>2.10.5</com.fasterxml.jackson.version>
-        <com.github.spotbugs.annotations>4.5.3</com.github.spotbugs.annotations>
-        <com.microsoft.azure.msal4j.version>1.11.0</com.microsoft.azure.msal4j.version>
-        <com.nimbusds.content.type.version>2.1</com.nimbusds.content.type.version>
-        <com.nimbusds.oauth2-oidc-sdk.version>9.7</com.nimbusds.oauth2-oidc-sdk.version>
-        <com.squareup.okhttp3.okhttp.version>4.8.1</com.squareup.okhttp3.okhttp.version>
-        <com.squareup.okio.version>2.7.0</com.squareup.okio.version>
-        <io.projectreactor.reactor.core.version>3.4.9</io.projectreactor.reactor.core.version>
-        <org.jetbrains.kotlin.stdlib.version>1.6.0</org.jetbrains.kotlin.stdlib.version>
+        <com.azure.core.version>1.28.0</com.azure.core.version>
+        <com.azure.core.http.okhttp.version>1.9.0</com.azure.core.http.okhttp.version>
+        <com.azure.identity.version>1.5.1</com.azure.identity.version>
+        <com.azure.security.keyvault.secrets.version>4.4.2</com.azure.security.keyvault.secrets.version>
+        <com.fasterxml.jackson.version>2.13.3</com.fasterxml.jackson.version>
+        <com.microsoft.azure.msal4j.version>1.12.0</com.microsoft.azure.msal4j.version>
+        <com.nimbusds.content.type.version>2.2</com.nimbusds.content.type.version>
+        <com.nimbusds.oauth2-oidc-sdk.version>9.35</com.nimbusds.oauth2-oidc-sdk.version>
+        <com.squareup.okhttp3.okhttp.version>4.9.3</com.squareup.okhttp3.okhttp.version>
+        <com.squareup.okio.version>2.10.0</com.squareup.okio.version>
+        <commons.lang.version>2.6.0.wso2v1</commons.lang.version>
+        <findbugs.annotation.version>3.0.1</findbugs.annotation.version>
+        <io.projectreactor.reactor.core.version>3.4.18</io.projectreactor.reactor.core.version>
+        <org.jetbrains.kotlin.stdlib.version>1.6.21</org.jetbrains.kotlin.stdlib.version>
         <org.reactivestreams.version>1.0.3</org.reactivestreams.version>
         <org.wso2.securevault.version>1.1.4</org.wso2.securevault.version>
 
-        <maven.findbugsplugin.version>3.0.4</maven.findbugsplugin.version>
+        <org.junit.jupiter.version>5.8.2</org.junit.jupiter.version>
+        <org.mockito.core.version>3.4.6</org.mockito.core.version>
+        <org.mockito.inline.version>4.5.1</org.mockito.inline.version>
+
+        <maven.surefire.plugin.version>2.22.0</maven.surefire.plugin.version>
         <maven.bundle.plugin.version>5.1.4</maven.bundle.plugin.version>
-        <findbugs.annotation.version>3.0.1</findbugs.annotation.version>
+
+        <!--The FindBugs plugin version specified in the parent pom is 3.0.3,
+        which is incompatible with Maven version 3.6.0+. The following overrides
+        the version to overcome this issue.-->
+        <maven.findbugsplugin.version>3.0.4</maven.findbugsplugin.version>
 
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>

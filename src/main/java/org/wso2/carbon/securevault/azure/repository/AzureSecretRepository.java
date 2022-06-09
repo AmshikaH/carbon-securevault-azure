@@ -18,12 +18,10 @@ package org.wso2.carbon.securevault.azure.repository;
 
 import com.azure.core.exception.ResourceNotFoundException;
 import com.azure.security.keyvault.secrets.SecretClient;
-import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.securevault.azure.commons.ConfigUtils;
-import org.wso2.carbon.securevault.azure.commons.SecretClientUtils;
 import org.wso2.carbon.securevault.azure.exception.AzureSecretRepositoryException;
 import org.wso2.securevault.CipherFactory;
 import org.wso2.securevault.CipherOperationMode;
@@ -39,12 +37,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 import static org.wso2.carbon.securevault.azure.commons.Constants.AZURE_SECRET_CALLBACK_HANDLER;
-import static org.wso2.carbon.securevault.azure.commons.Constants.DELIMITER;
-import static org.wso2.carbon.securevault.azure.commons.Constants.DOT;
+import static org.wso2.carbon.securevault.azure.commons.Constants.CRLF_SANITATION_REGEX;
 import static org.wso2.carbon.securevault.azure.commons.Constants.ENCRYPTION_ENABLED;
-import static org.wso2.carbon.securevault.azure.commons.Constants.KEY;
-import static org.wso2.carbon.securevault.azure.commons.Constants.REGEX;
-import static org.wso2.carbon.securevault.azure.commons.Constants.STORE;
+import static org.wso2.carbon.securevault.azure.repository.SecretClientFactory.getSecretClient;
 
 /**
  * Extension to facilitate the use of an Azure Key Vault as an external secret repository.
@@ -54,14 +49,15 @@ public class AzureSecretRepository implements SecretRepository {
     private static final Log log = LogFactory.getLog(AzureSecretRepository.class);
     private static final String ALGORITHM = "algorithm";
     private static final String DEFAULT_ALGORITHM = "RSA";
-    private static final String TRUSTED = "trusted";
+    private static final String SECRET_NAME_REGEX = "^[a-zA-Z0-9-]*$";
+    private static final String VERSION_DELIMITER = "#";
     private Boolean encryptionEnabled = false;
-    private SecretClient secretClient;
     private DecryptionProvider baseCipher;
-    private ConfigUtils configUtils;
     private SecretRepository parentRepository;
     private IdentityKeyStoreWrapper identityKeyStoreWrapper;
     private TrustKeyStoreWrapper trustKeyStoreWrapper;
+    private ConfigUtils configUtils;
+    private SecretClient secretClient;
 
     /**
      * Creates an AzureSecretRepository by setting the identity keystore wrapper and trust keystore wrapper with
@@ -93,10 +89,21 @@ public class AzureSecretRepository implements SecretRepository {
     public void init(Properties properties, String id) {
 
         try {
-            secretClient = SecretClientUtils.getSecretClient(properties);
+            secretClient = getSecretClient(properties);
+            /*
+            - The secrets related to retrieved through the AzureSecretCallbackHandler would not involve any
+            encryption/decryption as the keystores (used for encryption/decryption) would not have been initialized
+            at that point.
+            - Therefore, when this method is called from the mentioned handler, the following if block is skipped and
+            encryption is not enabled even if the encryptionEnabled configuration is set to true.
+            - Prior to retrieving the secrets defined in the deployment.toml file, this method would be called again
+            from the Carbon Secure Vault core, during which the following if block would be executed and the encryption
+            status would be set according to the value specified in the encryptionEnabled configuration.
+             */
             if (!AZURE_SECRET_CALLBACK_HANDLER.equals(id)) {
                 configUtils = ConfigUtils.getInstance();
-                encryptionEnabled = Boolean.parseBoolean(configUtils.getConfig(properties, ENCRYPTION_ENABLED, null));
+                encryptionEnabled = Boolean.parseBoolean(configUtils.getAzureSecretRepositoryConfig(properties,
+                        ENCRYPTION_ENABLED));
                 if (encryptionEnabled) {
                     initDecryptionProvider(properties);
                 }
@@ -117,27 +124,36 @@ public class AzureSecretRepository implements SecretRepository {
     public String getSecret(String alias) {
 
         /* If no secret was retrieved, an empty String would be returned. If a runtime exception is thrown,
-        secret retrieval is attempted repeatedly in a loop for certain secrets, which would prevent moving on to the
-        next step or the server breaking.*/
+        secret retrieval is attempted repeatedly in a loop for secrets like the keystore password, which would prevent
+        moving on to the next step or the server breaking.*/
         String secret = "";
         try {
             secret = retrieveSecretFromVault(alias);
         } catch (AzureSecretRepositoryException e) {
-            log.error("Retrieval of secret with reference '" + alias.replaceAll(REGEX, "")
-                    + "' from Azure Key Vault failed. Returning empty String.", e);
+            log.error("Secret retrieval failed.", e);
         }
         if (StringUtils.isNotEmpty(secret)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Secret with reference '" + alias.replaceAll(CRLF_SANITATION_REGEX, StringUtils.EMPTY)
+                        + "' was successfully retrieved from Azure Key Vault.");
+            }
+            /*
+            If secrets were encrypted with the cipher tool prior to storing them in the Key Vault, they would be
+            decrypted in the following if block and the plain text value of the secret would be returned.
+            */
+            log.info("Secret pre-decryption: '" + secret.replaceAll(CRLF_SANITATION_REGEX, "") + "'.");
             if (encryptionEnabled) {
                 secret = new String(baseCipher.decrypt(secret.trim().getBytes(StandardCharsets.UTF_8)),
                         StandardCharsets.UTF_8);
+                log.info("Secret post-decryption: '" + secret.replaceAll(CRLF_SANITATION_REGEX, "") + "'.");
                 if (log.isDebugEnabled()) {
                     log.debug("Retrieved secret was successfully decrypted.");
                 }
             }
-            if (log.isDebugEnabled()) {
-                log.debug("Secret with reference '" + alias.replaceAll(REGEX, "")
-                        + "' was successfully retrieved from Azure Key Vault.");
-            }
+        } else {
+            String aliasToLog = StringUtils.isEmpty(alias) ? "empty reference" : ("reference '" + alias + "'");
+            log.error("Failed to retrieve secret with " + aliasToLog.replaceAll(CRLF_SANITATION_REGEX,
+                    StringUtils.EMPTY) + ". Value set to empty String.");
         }
         return secret;
     }
@@ -155,7 +171,8 @@ public class AzureSecretRepository implements SecretRepository {
                 return retrieveSecretFromVault(alias);
             } catch (AzureSecretRepositoryException e) {
                 log.error("Retrieval of encrypted data of secret with reference '" +
-                        alias.replaceAll(REGEX, "") + "' from Azure Key Vault failed. Returning empty String.");
+                        alias.replaceAll(CRLF_SANITATION_REGEX, StringUtils.EMPTY) + "' from Azure Key Vault failed. " +
+                        "Returning empty String.");
                 return "";
             }
         } else {
@@ -184,6 +201,26 @@ public class AzureSecretRepository implements SecretRepository {
         return this.parentRepository;
     }
 
+    @Override
+    public void setKeyStores(IdentityKeyStoreWrapper identityKeyStoreWrapper,
+                             TrustKeyStoreWrapper trustKeyStoreWrapper) {
+
+        log.info("Setting keystore for AzureSecretRepository.");
+        this.identityKeyStoreWrapper = identityKeyStoreWrapper;
+        this.trustKeyStoreWrapper = trustKeyStoreWrapper;
+        if (this.identityKeyStoreWrapper == null) {
+            log.info("IdentityKeyStoreWrapper is null.");
+        } else {
+            log.info("IdentityKeyStoreWrapper is not null.");
+        }
+
+        if (trustKeyStoreWrapper == null) {
+            log.info("TrustKeyStoreWrapper is null.");
+        } else {
+            log.info("TrustKeyStoreWrapper is not null.");
+        }
+    }
+
     /**
      * Initializes the DecryptionProvider to be used if encryption has been enabled.
      *
@@ -191,14 +228,26 @@ public class AzureSecretRepository implements SecretRepository {
      */
     private void initDecryptionProvider(Properties properties) {
 
-        String algorithm = configUtils.getConfig(properties, ALGORITHM, DEFAULT_ALGORITHM);
-        String keyStore = properties.getProperty(DOT + KEY + StringUtils.capitalise(STORE));
-        KeyStoreWrapper keyStoreWrapper;
-        if (TRUSTED.equals(keyStore)) {
-            keyStoreWrapper = trustKeyStoreWrapper;
-        } else {
-            keyStoreWrapper = identityKeyStoreWrapper;
+        String algorithm = configUtils.getAzureSecretRepositoryConfig(properties, ALGORITHM);
+        if (StringUtils.isEmpty(algorithm)) {
+            if (log.isDebugEnabled()) {
+                log.debug("No algorithm configured. Using default value: " + DEFAULT_ALGORITHM);
+            }
+            algorithm = DEFAULT_ALGORITHM;
         }
+        if (identityKeyStoreWrapper == null) {
+            log.info("initDecryptionProvider: IdentityKeyStoreWrapper is null.");
+        } else {
+            log.info("initDecryptionProvider: IdentityKeyStoreWrapper is not null.");
+        }
+        KeyStoreWrapper keyStoreWrapper = identityKeyStoreWrapper;
+
+        if (keyStoreWrapper == null) {
+            log.info("initDecryptionProvider: keyStoreWrapper is null.");
+        } else {
+            log.info("initDecryptionProvider: keyStoreWrapper is not null.");
+        }
+        keyStoreWrapper.
 
         CipherInformation cipherInformation = new CipherInformation();
         cipherInformation.setAlgorithm(algorithm);
@@ -214,19 +263,34 @@ public class AzureSecretRepository implements SecretRepository {
      * @param alias The name and version (the latter is optional) of the secret being retrieved.
      * @return the secret value retrieved from the Key Vault.
      */
-    public String retrieveSecretFromVault(String alias) throws AzureSecretRepositoryException {
+    private String retrieveSecretFromVault(String alias) throws AzureSecretRepositoryException {
 
-        String secret = "";
+        String secretValue = "";
         if (secretClient != null) {
+            SecretReference secretReference = parseSecretReference(alias);
+            if (!secretReference.secretName.matches(SECRET_NAME_REGEX)) {
+                throw new AzureSecretRepositoryException("Invalid secret name: " +
+                        secretReference.secretName.replaceAll(CRLF_SANITATION_REGEX, StringUtils.EMPTY) + ". Azure " +
+                        "Key Vault secret names can only contain alphanumeric characters and dashes.");
+            }
+            if (log.isDebugEnabled()) {
+                if (StringUtils.isNotEmpty(secretReference.secretVersion)) {
+                    log.debug("Secret version '" + secretReference.secretVersion.replaceAll(CRLF_SANITATION_REGEX,
+                            StringUtils.EMPTY) + "' found for secret '" + secretReference.secretName.replaceAll(
+                            CRLF_SANITATION_REGEX, StringUtils.EMPTY) + "'. Retrieving specified version of secret.");
+                } else {
+                    log.debug("Secret version not found for secret '" + alias.replaceAll(CRLF_SANITATION_REGEX,
+                            StringUtils.EMPTY) + "'. Retrieving latest version of secret.");
+                }
+            }
             try {
-                String[] aliasComponents = parseSecretReference(alias);
-                KeyVaultSecret retrievedSecret = secretClient.getSecret(aliasComponents[0], aliasComponents[1]);
-                secret = retrievedSecret.getValue();
+                secretValue = secretClient.getSecret(secretReference.secretName,
+                        secretReference.secretVersion).getValue();
             } catch (ResourceNotFoundException e) {
                 throw new AzureSecretRepositoryException("Secret not found in Key Vault.", e);
             }
         }
-        return secret;
+        return secretValue;
     }
 
     /**
@@ -237,34 +301,41 @@ public class AzureSecretRepository implements SecretRepository {
      * @return An array comprising the name and version of the secret.
      * @throws AzureSecretRepositoryException If parsing of the secret reference failed.
      */
-    private String[] parseSecretReference(String alias) throws AzureSecretRepositoryException {
+    private SecretReference parseSecretReference(String alias) throws AzureSecretRepositoryException {
 
-        String[] aliasComponents = {alias, null};
         if (StringUtils.isNotEmpty(alias)) {
-            if (alias.contains(DELIMITER)) {
-                if (StringUtils.countMatches(alias, DELIMITER) == 1) {
-                    aliasComponents = alias.split(DELIMITER, -1);
+            if (alias.contains(VERSION_DELIMITER)) {
+                if (StringUtils.countMatches(alias, VERSION_DELIMITER) == 1) {
+                    String[] aliasComponents = alias.split(VERSION_DELIMITER, -1);
                     if (StringUtils.isEmpty(aliasComponents[0])) {
                         throw new AzureSecretRepositoryException("Secret name cannot be empty.");
                     }
+                    return new SecretReference(aliasComponents[0], aliasComponents[1]);
                 } else {
-                    throw new AzureSecretRepositoryException("Syntax error in secret reference '" +
-                            alias.replaceAll(REGEX, "") + "'. Secret reference should be in the format " +
-                            "'secretName_secretVersion'. Note that there should be only one underscore.");
+                    throw new AzureSecretRepositoryException("Syntax error in secret reference '" + alias.replaceAll(
+                            CRLF_SANITATION_REGEX, StringUtils.EMPTY) + "'. Secret reference should be in the format" +
+                            " 'secretName" + VERSION_DELIMITER + "secretVersion'. Note that there should be only one" +
+                            " " + VERSION_DELIMITER + ".");
                 }
             }
+            return new SecretReference(alias);
         } else {
             throw new AzureSecretRepositoryException("Secret alias cannot be empty.");
         }
-        if (log.isDebugEnabled()) {
-            if (StringUtils.isNotEmpty(aliasComponents[1])) {
-                log.debug("Secret version '" + aliasComponents[1].replaceAll(REGEX, "") + "' found for secret"
-                        + " '" + aliasComponents[0] + "'. Retrieving specified version of secret.");
-            } else {
-                log.debug("Secret version not found for secret '" + alias.replaceAll(REGEX, "") +
-                        "'. Retrieving latest version of secret.");
-            }
+    }
+
+    private static class SecretReference {
+
+        private String secretName;
+        private String secretVersion;
+
+        public SecretReference(String secretName) {
+            this.secretName = secretName;
         }
-        return aliasComponents;
+
+        public SecretReference(String secretName, String secretVersion) {
+            this.secretName = secretName;
+            this.secretVersion = secretVersion;
+        }
     }
 }
